@@ -1,0 +1,24 @@
+PAWCARE - CAT BREED CLASSIFIER
+TEST DATASET CLASSIFICATION REPORT
+======================================================================
+
+Number of test images: 111
+Number of classes: 11
+
+                   precision    recall  f1-score   support
+
+       Abyssinian     1.0000    1.0000    1.0000        10
+           Bengal     0.7857    1.0000    0.8800        11
+           Bombay     1.0000    1.0000    1.0000        11
+British_Shorthair     0.8750    0.7000    0.7778        10
+     Egyptian_Mau     1.0000    0.8000    0.8889        10
+       Maine_Coon     1.0000    0.5000    0.6667        10
+          Persian     0.8333    1.0000    0.9091        10
+          Ragdoll     0.8182    1.0000    0.9000         9
+     Russian_Blue     0.8000    0.8889    0.8421         9
+          Siamese     1.0000    1.0000    1.0000        11
+           Sphynx     0.9091    1.0000    0.9524        10
+
+         accuracy                         0.9009       111
+        macro avg     0.9110    0.8990    0.8924       111
+     weighted avg     0.9133    0.9009    0.8947       111

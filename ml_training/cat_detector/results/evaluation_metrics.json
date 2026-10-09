@@ -1,0 +1,12 @@
+{
+    "total_test_images": 212,
+    "correct_predictions": 210,
+    "incorrect_predictions": 2,
+    "test_accuracy": 0.9905660377358491,
+    "weighted_precision": 0.9907407407407407,
+    "weighted_recall": 0.9905660377358491,
+    "weighted_f1_score": 0.9905651980418336,
+    "macro_precision": 0.9907407407407407,
+    "macro_recall": 0.9905660377358491,
+    "macro_f1_score": 0.9905651980418335
+}

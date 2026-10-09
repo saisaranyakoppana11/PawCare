@@ -1,0 +1,175 @@
+<!-- =========================================================
+     PAWCARE PET PROFILE & ACCOUNT DROPDOWN MENU
+     Replaces standalone Logout button with interactive pet profile
+========================================================= -->
+<li class="nav-item dropdown ms-lg-3 d-flex align-items-center">
+    <a class="nav-link p-0 nav-profile-toggle d-flex align-items-center gap-2"
+       href="#"
+       id="pawcareProfileMenu"
+       role="button"
+       data-bs-toggle="dropdown"
+       aria-expanded="false"
+       title="Pet Profile &amp; Account">
+        <div class="nav-avatar-wrapper">
+            {% if nav_selected_pet and nav_selected_pet.photo %}
+                <img src="{{ url_for('uploaded_file', filename=nav_selected_pet.photo) }}"
+                     alt="{{ nav_selected_pet.name }}"
+                     class="nav-avatar-img">
+            {% else %}
+                <div class="nav-avatar-fallback">
+                    <span>🐾</span>
+                </div>
+            {% endif %}
+            <span class="nav-avatar-indicator" title="Active Pet Profile"></span>
+        </div>
+        {% if nav_selected_pet %}
+            <span class="d-none d-xl-inline text-light fw-medium small text-truncate" style="max-width: 100px;">
+                {{ nav_selected_pet.name }}
+            </span>
+        {% endif %}
+    </a>
+
+    <!-- Profile Dropdown Menu -->
+    <ul class="dropdown-menu dropdown-menu-end nav-profile-menu shadow-lg border-0 py-0"
+        aria-labelledby="pawcareProfileMenu">
+
+        <!-- User Information Header -->
+        <li class="nav-profile-header p-3">
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <div class="user-badge-initial">
+                    {{ current_user.name[0]|upper if current_user and current_user.name else 'U' }}
+                </div>
+                <div class="overflow-hidden">
+                    <div class="fw-bold text-dark text-truncate" style="font-size: 0.95rem;">
+                        {{ current_user.name if current_user else 'Pet Owner' }}
+                    </div>
+                    <div class="text-muted small text-truncate" style="font-size: 0.8rem;">
+                        {{ current_user.email if current_user else '' }}
+                    </div>
+                </div>
+            </div>
+        </li>
+
+        <li><hr class="dropdown-divider my-0"></li>
+
+        <!-- Active Selected Pet Section -->
+        <li class="p-3 bg-light-subtle">
+            <div class="text-uppercase fw-bold text-muted mb-2" style="font-size: 0.68rem; letter-spacing: 0.06em;">
+                Active Pet Profile
+            </div>
+            {% if nav_selected_pet %}
+                <div class="d-flex align-items-center gap-2 active-pet-card p-2 rounded-3">
+                    <div class="active-pet-thumb">
+                        {% if nav_selected_pet.photo %}
+                            <img src="{{ url_for('uploaded_file', filename=nav_selected_pet.photo) }}"
+                                 alt="{{ nav_selected_pet.name }}"
+                                 class="w-100 h-100 object-fit-cover rounded-circle">
+                        {% else %}
+                            <div class="w-100 h-100 rounded-circle d-flex align-items-center justify-content-center bg-teal-subtle text-teal">
+                                🐾
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="flex-grow-1 overflow-hidden">
+                        <div class="fw-bold text-dark text-truncate" style="font-size: 0.9rem;">
+                            {{ nav_selected_pet.name }}
+                        </div>
+                        <div class="text-muted small text-truncate" style="font-size: 0.78rem;">
+                            {{ nav_selected_pet.species|capitalize }}{% if nav_selected_pet.breed %} • {{ nav_selected_pet.breed }}{% endif %}
+                        </div>
+                    </div>
+                    <a href="{{ url_for('pet_profile', pet_id=nav_selected_pet.id) }}"
+                       class="btn btn-sm btn-outline-primary py-1 px-2 rounded-pill flex-shrink-0"
+                       title="View Full Profile"
+                       style="font-size: 0.75rem;">
+                        View
+                    </a>
+                </div>
+            {% else %}
+                <div class="text-center py-2 text-muted small">
+                    <div class="fs-4 mb-1">🐾</div>
+                    No pets registered yet.
+                    <div class="mt-2">
+                        <a href="{{ url_for('add_pet') }}" class="btn btn-sm btn-primary rounded-pill px-3" style="font-size: 0.78rem;">
+                            + Add Your First Pet
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </li>
+
+        <!-- Pet Switcher (Visible if user has multiple pets) -->
+        {% if nav_user_pets and nav_user_pets|length > 1 %}
+            <li><hr class="dropdown-divider my-0"></li>
+            <li class="px-3 pt-3 pb-1">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="text-uppercase fw-bold text-muted" style="font-size: 0.68rem; letter-spacing: 0.06em;">
+                        Switch Pet ({{ nav_user_pets|length }})
+                    </span>
+                    <a href="{{ url_for('dashboard') }}" class="text-primary text-decoration-none" style="font-size: 0.75rem;">
+                        All Pets
+                    </a>
+                </div>
+            </li>
+            <li class="pet-switcher-scroll px-2 pb-2">
+                {% for p in nav_user_pets %}
+                    <a href="{{ url_for('select_pet', pet_id=p.id) }}"
+                       class="dropdown-item d-flex align-items-center justify-content-between rounded-2 px-2 py-2 mb-1 {% if nav_selected_pet and nav_selected_pet.id == p.id %}active-pet-item{% endif %}">
+                        <div class="d-flex align-items-center gap-2 overflow-hidden">
+                            <div class="pet-switcher-thumb">
+                                {% if p.photo %}
+                                    <img src="{{ url_for('uploaded_file', filename=p.photo) }}"
+                                         alt="{{ p.name }}"
+                                         class="w-100 h-100 object-fit-cover rounded-circle">
+                                {% else %}
+                                    <div class="w-100 h-100 rounded-circle d-flex align-items-center justify-content-center bg-secondary-subtle">
+                                        🐾
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="text-truncate">
+                                <div class="fw-semibold text-truncate" style="font-size: 0.85rem; line-height: 1.2;">
+                                    {{ p.name }}
+                                </div>
+                                <div class="text-muted text-truncate" style="font-size: 0.75rem;">
+                                    {{ p.species|capitalize }}{% if p.breed %} • {{ p.breed }}{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% if nav_selected_pet and nav_selected_pet.id == p.id %}
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0 ms-2" style="font-size: 0.7rem;">
+                                Active
+                            </span>
+                        {% endif %}
+                    </a>
+                {% endfor %}
+            </li>
+        {% endif %}
+
+        <li><hr class="dropdown-divider my-0"></li>
+
+        <!-- Quick Pet Action Links -->
+        <li class="py-2 px-2">
+            <a class="dropdown-item rounded-2 py-2 px-3 d-flex align-items-center gap-2" href="{{ url_for('dashboard') }}">
+                <span>📋</span>
+                <span style="font-size: 0.85rem;">My Pets &amp; Dashboard</span>
+            </a>
+            <a class="dropdown-item rounded-2 py-2 px-3 d-flex align-items-center gap-2" href="{{ url_for('add_pet') }}">
+                <span>➕</span>
+                <span style="font-size: 0.85rem;">Add New Pet</span>
+            </a>
+        </li>
+
+        <li><hr class="dropdown-divider my-0"></li>
+
+        <!-- Logout Action -->
+        <li class="p-2">
+            <a class="dropdown-item rounded-2 py-2 px-3 d-flex align-items-center gap-2 text-danger fw-semibold logout-dropdown-item"
+               href="{{ url_for('logout') }}">
+                <span>🚪</span>
+                <span style="font-size: 0.85rem;">Logout</span>
+            </a>
+        </li>
+
+    </ul>
+</li>

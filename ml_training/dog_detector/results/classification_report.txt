@@ -1,0 +1,25 @@
+PawCare Dog Detector Classification Report
+============================================================
+
+Test images: 100
+Correct: 97
+Incorrect: 3
+
+Accuracy: 0.9700
+Weighted Precision: 0.9702
+Weighted Recall: 0.9700
+Weighted F1: 0.9700
+
+              precision    recall  f1-score   support
+
+         dog     0.9608    0.9800    0.9703        50
+     non_dog     0.9796    0.9600    0.9697        50
+
+    accuracy                         0.9700       100
+   macro avg     0.9702    0.9700    0.9700       100
+weighted avg     0.9702    0.9700    0.9700       100
+
+
+Confusion Matrix:
+[[49  1]
+ [ 2 48]]

@@ -1,0 +1,12 @@
+path: C:/Users/saisa/Downloads/object detection/dog skin disease/yolo_dataset
+
+train: images/train
+val: images/valid
+test: images/test
+
+names:
+  0: demodicosis
+  1: Dermatitis
+  2: Fungal_infections
+  3: Hypersensitivity
+  4: ringworm

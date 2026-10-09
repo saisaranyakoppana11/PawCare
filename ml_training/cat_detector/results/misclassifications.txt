@@ -1,0 +1,14 @@
+PAWCARE - CAT VS NON-CAT DETECTOR
+MISCLASSIFIED TEST SAMPLES
+======================================================================
+
+Test sample index: 139
+Actual class      : non_cat
+Predicted class   : cat
+Confidence        : 55.68%
+--------------------------------------------------
+Test sample index: 155
+Actual class      : non_cat
+Predicted class   : cat
+Confidence        : 57.54%
+--------------------------------------------------

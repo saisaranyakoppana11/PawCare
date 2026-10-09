@@ -1,0 +1,7 @@
+PawCare Dog Detector Confusion Matrix
+==================================================
+
+Class order: ['dog', 'non_dog']
+
+[[49  1]
+ [ 2 48]]

@@ -1,0 +1,9 @@
+PAWCARE - DOG BREED CLASSIFIER
+MISCLASSIFICATIONS
+======================================================================
+
+Sample index: 20
+Actual: pug
+Predicted: boxer
+Confidence: 0.2488
+--------------------------------------------------

@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>PawCare | Dashboard</title>
+
+    <!-- Bootstrap 5 -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <!-- PawCare CSS -->
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================================
+     NAVBAR
+========================================================= -->
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+
+    <div class="container">
+
+        <a
+            class="navbar-brand fw-bold"
+            href="{{ url_for('dashboard') }}"
+        >
+            🐾 PawCare
+        </a>
+
+
+        <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarContent"
+            aria-controls="navbarContent"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+        >
+
+            <span class="navbar-toggler-icon"></span>
+
+        </button>
+
+
+        <div
+            class="collapse navbar-collapse"
+            id="navbarContent"
+        >
+
+            <ul class="navbar-nav ms-auto align-items-lg-center">
+
+                <li class="nav-item">
+
+                    <a
+                        class="nav-link active"
+                        href="{{ url_for('dashboard') }}"
+                    >
+                        Dashboard
+                    </a>
+
+                </li>
+
+                <li class="nav-item">
+
+                    <a
+                        class="nav-link"
+                        href="#features"
+                    >
+                        Features
+                    </a>
+
+                </li>
+
+
+                {% include 'includes/nav_profile_dropdown.html' %}
+
+            </ul>
+
+        </div>
+
+    </div>
+
+</nav>
+
+
+
+<!-- =========================================================
+     MAIN CONTENT
+========================================================= -->
+
+<main class="container py-5">
+
+
+    <!-- =====================================================
+         FLASH MESSAGES
+    ====================================================== -->
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+
+        {% if messages %}
+
+            <div class="mb-4">
+
+                {% for category, message in messages %}
+
+                    <div
+                        class="alert alert-{{
+                            'danger'
+                            if category == 'error'
+                            else category
+                            if category in ['success', 'danger', 'warning', 'info']
+                            else 'info'
+                        }} alert-dismissible fade show"
+                        role="alert"
+                    >
+
+                        {{ message }}
+
+                        <button
+                            type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                            aria-label="Close"
+                        ></button>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
+
+    {% endwith %}
+
+
+
+    <!-- =====================================================
+         WELCOME SECTION
+    ====================================================== -->
+
+    <section class="mb-5">
+
+        <div class="card border-0 shadow-sm">
+
+            <div class="card-body p-4 p-md-5">
+
+                <div class="row align-items-center">
+
+                    <div class="col-md-8">
+
+                        <p class="text-primary fw-semibold mb-2">
+
+                            Welcome to PawCare 🐾
+
+                        </p>
+
+
+                        <h1 class="fw-bold mb-3">
+
+                            Hello, {{ user.name }}!
+
+                        </h1>
+
+
+                        <p class="text-muted mb-0">
+
+                            Manage your pets, health records,
+                            safety information and PawCare
+                            features from one place.
+
+                        </p>
+
+                    </div>
+
+
+                    <div class="col-md-4 text-md-end mt-4 mt-md-0">
+
+                        {% if user.is_verified %}
+
+                            <span
+                                class="badge bg-success fs-6 px-3 py-2"
+                            >
+                                ✓ Account Verified
+                            </span>
+
+                        {% else %}
+
+                            <span
+                                class="badge bg-warning text-dark fs-6 px-3 py-2"
+                            >
+                                Account Not Verified
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {% if nav_notification_count and nav_notification_count > 0 %}
+            <div class="alert alert-warning border-0 shadow-sm mt-4 d-flex align-items-center justify-content-between flex-wrap gap-3 p-3 px-4 rounded-3">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="fs-3">🔔</span>
+                    <div>
+                        <div class="fw-bold text-dark">Active Health &amp; Care Reminders</div>
+                        <div class="small text-muted">
+                            You have {{ nav_notification_count }} immunization or parasite control reminder{{ 's' if nav_notification_count > 1 else '' }} requiring attention.
+                            {% if nav_overdue_count and nav_overdue_count > 0 %}
+                                <span class="badge bg-danger ms-1">{{ nav_overdue_count }} Overdue</span>
+                            {% endif %}
+                            {% if nav_upcoming_count and nav_upcoming_count > 0 %}
+                                <span class="badge bg-warning text-dark ms-1">{{ nav_upcoming_count }} Due Soon</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <a href="{{ url_for('notifications') }}" class="btn btn-warning btn-sm fw-bold">
+                        View Reminders →
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+
+    </section>
+
+    <!-- =====================================================
+         SUMMARY METRICS
+    ====================================================== -->
+    <div class="row g-3 mb-5">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-3 bg-white">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="fs-2">🐾</span>
+                    <div>
+                        <div class="text-muted small fw-semibold">Total Pets</div>
+                        <h3 class="fw-bold mb-0 text-dark">{{ pets|length }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-3 bg-white">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="fs-2">💉</span>
+                    <div>
+                        <div class="text-muted small fw-semibold">Total Vaccinations</div>
+                        <h3 class="fw-bold mb-0 text-primary">{{ total_vaccinations|default(0) }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-3 bg-white">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="fs-2">💊</span>
+                    <div>
+                        <div class="text-muted small fw-semibold">Total Deworming</div>
+                        <h3 class="fw-bold mb-0 text-success">{{ total_deworming|default(0) }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-3 bg-white">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="fs-2">🔔</span>
+                    <div>
+                        <div class="text-muted small fw-semibold">Active Alerts</div>
+                        <h3 class="fw-bold mb-0 text-danger">{{ nav_notification_count|default(0) }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================
+         MY PETS
+    ====================================================== -->
+
+    <section
+        id="pets"
+        class="mb-5"
+    >
+
+        <div
+            class="d-flex flex-column flex-md-row
+                   justify-content-between
+                   align-items-md-center mb-4"
+        >
+
+            <div>
+
+                <h2 class="fw-bold mb-1">
+
+                    🐶🐱 My Pets
+
+                </h2>
+
+
+                <p class="text-muted mb-0">
+
+                    View and manage all your registered pets.
+
+                </p>
+
+            </div>
+
+
+            <!-- ADD PET -->
+
+            <div class="mt-3 mt-md-0">
+
+                <a
+                    href="{{ url_for('add_pet') }}"
+                    class="btn btn-primary"
+                >
+
+                    + Add Pet
+
+                </a>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             PETS EXIST
+        ================================================== -->
+
+        {% if pets %}
+
+            <div class="row g-4">
+
+                {% for pet in pets %}
+
+                    <div class="col-md-6 col-lg-4">
+
+                        <div
+                            class="card h-100 border-0
+                                   shadow-sm overflow-hidden"
+                        >
+
+
+                            <!-- PET IMAGE -->
+
+                            <div
+                                class="d-flex
+                                       align-items-center
+                                       justify-content-center
+                                       bg-light"
+                                style="height: 210px;"
+                            >
+
+                                {% if pet.photo %}
+
+                                    <img
+                                        src="{{
+                                            url_for(
+                                                'uploaded_file',
+                                                filename=pet.photo
+                                            )
+                                        }}"
+                                        alt="{{ pet.name }}"
+                                        style="
+                                            width: 100%;
+                                            height: 210px;
+                                            object-fit: cover;
+                                        "
+                                    >
+
+                                {% elif pet.species|lower == 'cat' %}
+
+                                    <span style="font-size: 85px;">
+                                        🐱
+                                    </span>
+
+                                {% elif pet.species|lower == 'dog' %}
+
+                                    <span style="font-size: 85px;">
+                                        🐶
+                                    </span>
+
+                                {% else %}
+
+                                    <span style="font-size: 85px;">
+                                        🐾
+                                    </span>
+
+                                {% endif %}
+
+                            </div>
+
+
+
+                            <!-- PET DETAILS -->
+
+                            <div class="card-body p-4">
+
+                                <h4 class="card-title fw-bold mb-3">
+
+                                    {{ pet.name }}
+
+                                </h4>
+
+
+                                <p class="mb-2">
+
+                                    {% if pet.species|lower == 'cat' %}
+
+                                        🐱
+
+                                    {% elif pet.species|lower == 'dog' %}
+
+                                        🐶
+
+                                    {% else %}
+
+                                        🐾
+
+                                    {% endif %}
+
+                                    <strong>
+
+                                        {{ pet.species|capitalize }}
+
+                                    </strong>
+
+                                </p>
+
+
+                                {% if pet.breed %}
+
+                                    <p class="text-muted mb-2">
+
+                                        <strong>
+                                            Breed:
+                                        </strong>
+
+                                        {{ pet.breed }}
+
+                                    </p>
+
+                                {% endif %}
+
+
+                                {% if pet.gender %}
+
+                                    <p class="text-muted mb-2">
+
+                                        <strong>
+                                            Gender:
+                                        </strong>
+
+                                        {{ pet.gender }}
+
+                                    </p>
+
+                                {% endif %}
+
+
+                                {% if pet.age is not none %}
+
+                                    <p class="text-muted mb-0">
+
+                                        <strong>
+                                            Age:
+                                        </strong>
+
+                                        {{ pet.age }}
+
+                                        {% if pet.age == 1 %}
+
+                                            year
+
+                                        {% else %}
+
+                                            years
+
+                                        {% endif %}
+
+                                    </p>
+
+                                {% endif %}
+
+                                <div class="d-flex flex-wrap gap-1 mt-3">
+                                    {% if pet.overdue_vaccinations %}
+                                        <span class="badge bg-danger">💉 {{ pet.overdue_vaccinations|length }} Vax Overdue</span>
+                                    {% elif pet.upcoming_vaccinations %}
+                                        <span class="badge bg-warning text-dark">💉 {{ pet.upcoming_vaccinations|length }} Vax Due Soon</span>
+                                    {% elif pet.vaccinations %}
+                                        <span class="badge bg-success">💉 Up to Date</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">💉 No Vax Records</span>
+                                    {% endif %}
+
+                                    {% if pet.overdue_dewormings %}
+                                        <span class="badge bg-danger">💊 {{ pet.overdue_dewormings|length }} Deworm Overdue</span>
+                                    {% elif pet.upcoming_dewormings %}
+                                        <span class="badge bg-warning text-dark">💊 {{ pet.upcoming_dewormings|length }} Deworm Due</span>
+                                    {% elif pet.dewormings %}
+                                        <span class="badge bg-success">💊 Dewormed</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">💊 No Deworm Records</span>
+                                    {% endif %}
+                                </div>
+
+                            </div>
+
+
+
+                            <!-- QUICK ACTION NAVIGATION -->
+
+                            <div
+                                class="card-footer
+                                       bg-white
+                                       border-0
+                                       p-3
+                                       pt-0"
+                            >
+
+                                <div class="d-grid gap-2">
+                                    <div class="btn-group w-100" role="group">
+                                        <a
+                                            href="{{ url_for('pet_profile', pet_id=pet.id) }}"
+                                            class="btn btn-outline-primary btn-sm fw-semibold"
+                                        >
+                                            👤 Profile
+                                        </a>
+                                        <a
+                                            href="{{ url_for('health_assistant', pet_id=pet.id) }}"
+                                            class="btn btn-outline-danger btn-sm fw-semibold"
+                                        >
+                                            ❤️ Health
+                                        </a>
+                                    </div>
+                                    <div class="btn-group w-100" role="group">
+                                        <a
+                                            href="{{ url_for('pet_vaccinations', pet_id=pet.id) }}"
+                                            class="btn btn-outline-success btn-sm fw-semibold"
+                                        >
+                                            💉 Vaccinations
+                                        </a>
+                                        <a
+                                            href="{{ url_for('pet_deworming', pet_id=pet.id) }}"
+                                            class="btn btn-outline-warning text-dark btn-sm fw-semibold"
+                                        >
+                                            💊 Deworming
+                                        </a>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+
+
+        <!-- =================================================
+             NO PETS
+        ================================================== -->
+
+        {% else %}
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-body text-center p-5">
+
+                    <div
+                        style="font-size: 75px;"
+                        class="mb-3"
+                    >
+                        🐾
+                    </div>
+
+
+                    <h3 class="fw-bold mb-3">
+
+                        No Pets Added Yet
+
+                    </h3>
+
+
+                    <p class="text-muted mb-4">
+
+                        Add your first cat or dog to start
+                        managing their information and using
+                        PawCare features.
+
+                    </p>
+
+
+                    <a
+                        href="{{ url_for('add_pet') }}"
+                        class="btn btn-primary"
+                    >
+
+                        + Add Your First Pet
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        {% endif %}
+
+    </section>
+
+
+
+    <!-- =====================================================
+         FEATURES
+    ====================================================== -->
+
+    <section
+        id="features"
+        class="mb-5"
+    >
+
+        <div class="text-center mb-4">
+
+            <h2 class="fw-bold">
+
+                PawCare Features
+
+            </h2>
+
+
+            <p class="text-muted">
+
+                Smart tools to help you take better care
+                of your pets.
+
+            </p>
+
+        </div>
+
+
+        <div class="row g-4">
+
+
+            <!-- 1. MY PETS -->
+
+            <div class="col-md-6 col-lg-3">
+
+                <div class="card h-100 border-0 shadow-sm text-center d-flex flex-column justify-content-between p-2">
+
+                    <div class="card-body p-4">
+
+                        <div style="font-size: 50px;" class="mb-3">
+                            🐾
+                        </div>
+
+                        <h5 class="fw-bold">
+                            My Pets
+                        </h5>
+
+                        <p class="text-muted">
+                            Manage registered pets, profiles, photos, and care records for all your companions.
+                        </p>
+
+                    </div>
+
+                    <div class="card-footer bg-white border-0 pt-0 pb-3">
+                        <a href="#pets" class="btn btn-outline-primary w-100 fw-semibold">
+                            View My Pets
+                        </a>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- 2. AI PET ANALYSIS -->
+
+            <div class="col-md-6 col-lg-3">
+
+                <div class="card h-100 border-0 shadow-sm text-center d-flex flex-column justify-content-between p-2">
+
+                    <div class="card-body p-4">
+
+                        <div style="font-size: 50px;" class="mb-3">
+                            🤖
+                        </div>
+
+                        <h5 class="fw-bold">
+                            AI Pet Analysis
+                        </h5>
+
+                        <p class="text-muted">
+                            Identify dog and cat breeds with confidence scoring using multi-stage neural vision.
+                        </p>
+
+                    </div>
+
+                    <div class="card-footer bg-white border-0 pt-0 pb-3">
+                        <a href="{{ url_for('ai_prediction') }}" class="btn btn-info text-white w-100 fw-semibold">
+                            Analyze Pet
+                        </a>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- 3. HEALTH ASSISTANT -->
+
+            <div class="col-md-6 col-lg-3">
+
+                <div class="card h-100 border-0 shadow-sm text-center d-flex flex-column justify-content-between p-2">
+
+                    <div class="card-body p-4">
+
+                        <div style="font-size: 50px;" class="mb-3">
+                            ❤️
+                        </div>
+
+                        <h5 class="fw-bold">
+                            Health Assistant
+                        </h5>
+
+                        <p class="text-muted">
+                            AI-assisted symptom guidance, breed risk awareness, and multi-stage pre-screening.
+                        </p>
+
+                    </div>
+
+                    <div class="card-footer bg-white border-0 pt-0 pb-3">
+                        <a href="{{ url_for('health_assistant') }}" class="btn btn-outline-danger w-100 fw-semibold">
+                            Explore Assistant
+                        </a>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- 4. EMERGENCY GUIDANCE -->
+
+            <div class="col-md-6 col-lg-3">
+
+                <div class="card h-100 border-0 shadow-sm text-center d-flex flex-column justify-content-between p-2">
+
+                    <div class="card-body p-4">
+
+                        <div style="font-size: 50px;" class="mb-3">
+                            🚨
+                        </div>
+
+                        <h5 class="fw-bold">
+                            Emergency Guidance
+                        </h5>
+
+                        <p class="text-muted">
+                            Access critical first-aid protocols, toxic substance warnings, and vet hotlines.
+                        </p>
+
+                    </div>
+
+                    <div class="card-footer bg-white border-0 pt-0 pb-3">
+                        <a href="{{ url_for('emergency') }}" class="btn btn-danger w-100 fw-semibold">
+                            Get Emergency Help
+                        </a>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- 5. VACCINATION RECORDS -->
+
+            <div class="col-md-6 col-lg-3">
+
+                <div class="card h-100 border-0 shadow-sm text-center d-flex flex-column justify-content-between p-2">
+
+                    <div class="card-body p-4">
+
+                        <div style="font-size: 50px;" class="mb-3">
+                            💉
+                        </div>
+
+                        <h5 class="fw-bold">
+                            Vaccinations
+                        </h5>
+
+                        <p class="text-muted">
+                            Maintain immunization history, log rabies and core shots, and track booster dates.
+                        </p>
+
+                    </div>
+
+                    <div class="card-footer bg-white border-0 pt-0 pb-3">
+                        <a href="{{ url_for('vaccinations') }}" class="btn btn-outline-success w-100 fw-semibold">
+                            View Records
+                        </a>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- 6. DEWORMING RECORDS -->
+
+            <div class="col-md-6 col-lg-3">
+
+                <div class="card h-100 border-0 shadow-sm text-center d-flex flex-column justify-content-between p-2">
+
+                    <div class="card-body p-4">
+
+                        <div style="font-size: 50px;" class="mb-3">
+                            💊
+                        </div>
+
+                        <h5 class="fw-bold">
+                            Deworming
+                        </h5>
+
+                        <p class="text-muted">
+                            Track preventive parasite treatments, medication doses, and next due reminders.
+                        </p>
+
+                    </div>
+
+                    <div class="card-footer bg-white border-0 pt-0 pb-3">
+                        <a href="{{ url_for('deworming') }}" class="btn btn-outline-warning text-dark w-100 fw-semibold">
+                            View Records
+                        </a>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- 7. NOTIFICATIONS -->
+
+            <div class="col-md-6 col-lg-3">
+
+                <div class="card h-100 border-0 shadow-sm text-center d-flex flex-column justify-content-between p-2">
+
+                    <div class="card-body p-4">
+
+                        <div style="font-size: 50px;" class="mb-3 position-relative d-inline-block">
+                            🔔
+                            {% if nav_notification_count and nav_notification_count > 0 %}
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 11px;">
+                                    {{ nav_notification_count }}
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <h5 class="fw-bold">
+                            Notifications
+                        </h5>
+
+                        <p class="text-muted">
+                            Stay updated with upcoming booster dates, overdue vaccinations, and health reminders.
+                        </p>
+
+                    </div>
+
+                    <div class="card-footer bg-white border-0 pt-0 pb-3">
+                        <a href="{{ url_for('notifications') }}" class="btn btn-outline-secondary w-100 fw-semibold">
+                            View Notifications
+                        </a>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- 8. LOST AND FOUND -->
+
+            <div class="col-md-6 col-lg-3">
+
+                <div class="card h-100 border-0 shadow-sm text-center d-flex flex-column justify-content-between p-2">
+
+                    <div class="card-body p-4">
+
+                        <div style="font-size: 50px;" class="mb-3">
+                            🔍
+                        </div>
+
+                        <h5 class="fw-bold">
+                            Lost &amp; Found
+                        </h5>
+
+                        <p class="text-muted">
+                            Report lost or found pets and discover potential matches with AI visual comparison.
+                        </p>
+
+                    </div>
+
+                    <div class="card-footer bg-white border-0 pt-0 pb-3">
+                        <a href="{{ url_for('lost_found') }}" class="btn btn-warning w-100 fw-bold">
+                            Explore Listings
+                        </a>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         ABOUT PAWCARE
+    ====================================================== -->
+
+    <section class="mb-4">
+
+        <div class="card border-0 shadow-sm">
+
+            <div class="card-body p-4">
+
+                <h4 class="fw-bold mb-3">
+
+                    🐾 About PawCare
+
+                </h4>
+
+
+                <p class="text-muted mb-0">
+
+                    PawCare is a smart pet care and safety platform
+                    designed to help pet owners manage their pets,
+                    monitor important health information, access
+                    emergency guidance, maintain vaccination and
+                    deworming records, and use AI-assisted pet
+                    care features.
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+</main>
+
+
+
+<!-- =========================================================
+     FOOTER
+========================================================= -->
+
+<footer class="bg-dark text-white text-center py-4 mt-5">
+
+    <div class="container">
+
+        <p class="mb-1">
+
+            🐾 <strong>PawCare</strong>
+
+        </p>
+
+
+        <small class="text-white-50">
+
+            Smart Pet Care &amp; Safety Platform
+
+        </small>
+
+    </div>
+
+</footer>
+
+
+
+<!-- Bootstrap JavaScript -->
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+></script>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+</body>
+
+</html>

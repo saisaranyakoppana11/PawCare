@@ -1,0 +1,12 @@
+PAWCARE - CAT VS NON-CAT DETECTOR
+CLASSIFICATION REPORT
+======================================================================
+
+              precision    recall  f1-score   support
+
+         cat     0.9815    1.0000    0.9907       106
+     non_cat     1.0000    0.9811    0.9905       106
+
+    accuracy                         0.9906       212
+   macro avg     0.9907    0.9906    0.9906       212
+weighted avg     0.9907    0.9906    0.9906       212

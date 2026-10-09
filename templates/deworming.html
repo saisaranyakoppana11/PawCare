@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PawCare | {{ pet.name }}'s Deworming</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- PawCare CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        .pet-avatar-thumb {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #e9ecef;
+            font-size: 28px;
+            border: 2px solid #dee2e6;
+            flex-shrink: 0;
+        }
+
+        .pet-avatar-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .stat-card {
+            border: none;
+            border-radius: 14px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+            transition: transform 0.15s ease-in-out;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .deworm-table-card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .table > :not(caption) > * > * {
+            padding: 1rem 1rem;
+            vertical-align: middle;
+        }
+
+        .badge-status {
+            font-size: 0.82rem;
+            padding: 0.45em 0.75em;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .action-btn {
+            border-radius: 8px;
+            padding: 0.35rem 0.65rem;
+            font-size: 0.85rem;
+        }
+    </style>
+
+</head>
+
+<body>
+
+<!-- =========================================================
+     NAVBAR
+========================================================= -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="{{ url_for('dashboard') }}">
+            🐾 PawCare
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
+            aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <ul class="navbar-nav ms-auto align-items-lg-center">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('dashboard') }}">
+                        Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('vaccinations') }}">
+                        💉 Vaccinations
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active fw-bold" href="{{ url_for('deworming') }}">
+                        💊 Deworming
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('notifications') }}">
+                        🔔 Notifications
+                        {% if nav_notification_count and nav_notification_count > 0 %}
+                            <span class="badge bg-danger rounded-pill ms-1">{{ nav_notification_count }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-warning fw-semibold" href="{{ url_for('lost_found') }}">
+                        🔍 Lost &amp; Found
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-danger fw-semibold" href="{{ url_for('emergency') }}">
+                        🚨 Emergency
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-info fw-semibold" href="{{ url_for('ai_prediction') }}">
+                        🤖 AI Analysis
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-danger fw-semibold" href="{{ url_for('health_assistant') }}">
+                        ❤️ Health Assistant
+                    </a>
+                </li>
+                {% include 'includes/nav_profile_dropdown.html' %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- =========================================================
+     MAIN CONTENT
+========================================================= -->
+<main class="container py-4 py-md-5">
+
+    <!-- BREADCRUMB / NAV -->
+    <div class="mb-4">
+        <a href="{{ url_for('pet_profile', pet_id=pet.id) }}" class="text-decoration-none text-muted">
+            ← Back to {{ pet.name }}'s Profile
+        </a>
+    </div>
+
+    <!-- FLASH MESSAGES -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category if category in ['success', 'danger', 'warning', 'info'] else 'info' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- HEADER BAR -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <div class="pet-avatar-thumb">
+                {% if pet.photo %}
+                    <img src="{{ url_for('uploaded_file', filename=pet.photo) }}" alt="{{ pet.name }}">
+                {% elif pet.species|lower == 'cat' %}
+                    🐱
+                {% elif pet.species|lower == 'dog' %}
+                    🐶
+                {% else %}
+                    🐾
+                {% endif %}
+            </div>
+            <div>
+                <h1 class="h3 fw-bold mb-1">
+                    💊 {{ pet.name }}'s Deworming Records
+                </h1>
+                <p class="text-muted mb-0 small">
+                    Track anti-parasitic treatments, schedules, and upcoming doses.
+                </p>
+            </div>
+        </div>
+
+        <div>
+            <a href="{{ url_for('add_deworming', pet_id=pet.id) }}" class="btn btn-primary px-4 py-2 fw-semibold">
+                ➕ Add Deworming Record
+            </a>
+        </div>
+    </div>
+
+    <!-- SUMMARY CARDS -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="card stat-card bg-white p-3">
+                <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.75rem;">Total Treatments</small>
+                <div class="fs-3 fw-bold text-dark mt-1">{{ total_count }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card stat-card p-3 {{ 'bg-danger text-white' if overdue_count > 0 else 'bg-white' }}">
+                <small class="{{ 'text-white-50' if overdue_count > 0 else 'text-muted' }} text-uppercase fw-semibold" style="font-size: 0.75rem;">Overdue</small>
+                <div class="fs-3 fw-bold {{ 'text-white' if overdue_count > 0 else 'text-danger' }} mt-1">
+                    {{ overdue_count }}
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card stat-card p-3 {{ 'bg-warning text-dark' if upcoming_count > 0 else 'bg-white' }}">
+                <small class="{{ 'text-dark-50' if upcoming_count > 0 else 'text-muted' }} text-uppercase fw-semibold" style="font-size: 0.75rem;">Due Soon</small>
+                <div class="fs-3 fw-bold {{ 'text-dark' if upcoming_count > 0 else 'text-warning' }} mt-1">
+                    {{ upcoming_count }}
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card stat-card bg-white p-3">
+                <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.75rem;">Up to Date</small>
+                <div class="fs-3 fw-bold text-success mt-1">{{ up_to_date_count }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- OVERDUE ALERT BANNER -->
+    {% if overdue_count > 0 %}
+        <div class="alert alert-danger d-flex align-items-center mb-4 rounded-3 shadow-sm" role="alert">
+            <span class="fs-3 me-3">⚠️</span>
+            <div>
+                <strong>Overdue Deworming Alert:</strong> {{ pet.name }} has {{ overdue_count }} overdue deworming dose(s). Please administer the treatment to keep your pet parasite-free.
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- UPCOMING DUE SOON BANNER -->
+    {% if upcoming_count > 0 %}
+        <div class="alert alert-warning d-flex align-items-center mb-4 rounded-3 shadow-sm" role="alert">
+            <span class="fs-3 me-3">🔔</span>
+            <div>
+                <strong>Upcoming Reminder:</strong> {{ pet.name }} has {{ upcoming_count }} deworming treatment(s) due within the next 30 days.
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- DEWORMING RECORDS LIST -->
+    {% if dewormings %}
+        <div class="card deworm-table-card">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col" style="min-width: 170px;">Medicine / Treatment</th>
+                            <th scope="col" style="min-width: 120px;">Date Given</th>
+                            <th scope="col" style="min-width: 130px;">Next Due Date</th>
+                            <th scope="col" style="min-width: 110px;">Status</th>
+                            <th scope="col" style="min-width: 140px;">Veterinarian</th>
+                            <th scope="col" style="min-width: 160px;">Notes</th>
+                            <th scope="col" class="text-end" style="min-width: 130px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dew in dewormings %}
+                            <tr>
+                                <td>
+                                    <div class="fw-bold text-dark">
+                                        {{ dew.medicine_name }}
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="text-secondary">
+                                        {{ dew.deworming_date.strftime('%b %d, %Y') }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if dew.next_due_date %}
+                                        <span class="{{ 'text-danger fw-bold' if dew.is_overdue else 'text-warning fw-semibold' if dew.is_upcoming else 'text-dark' }}">
+                                            {{ dew.next_due_date.strftime('%b %d, %Y') }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted small">None specified</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge {{ dew.status_badge_class }} badge-status">
+                                        {{ dew.status }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if dew.veterinarian %}
+                                        <span class="small fw-semibold text-dark">{{ dew.veterinarian }}</span>
+                                    {% else %}
+                                        <span class="text-muted small">—</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if dew.notes %}
+                                        <span class="small text-muted" title="{{ dew.notes }}">
+                                            {{ dew.notes[:50] }}{% if dew.notes|length > 50 %}...{% endif %}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted small">—</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-inline-flex gap-1">
+                                        <a href="{{ url_for('edit_deworming', pet_id=pet.id, deworming_id=dew.id) }}"
+                                           class="btn btn-sm btn-outline-secondary action-btn" title="Edit Record">
+                                            ✏️ Edit
+                                        </a>
+
+                                        <form method="POST" action="{{ url_for('delete_deworming', pet_id=pet.id, deworming_id=dew.id) }}"
+                                              class="d-inline"
+                                              onsubmit="return confirm('Are you sure you want to delete the deworming record for {{ dew.medicine_name }}?');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger action-btn" title="Delete Record">
+                                                🗑️
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <!-- EMPTY STATE -->
+        <div class="card deworm-table-card text-center p-5">
+            <div style="font-size: 70px; margin-bottom: 15px;">💊</div>
+            <h3 class="fw-bold mb-2">No Deworming Records Yet</h3>
+            <p class="text-muted mb-4" style="max-width: 480px; margin: 0 auto;">
+                Routine deworming prevents internal parasites like roundworms, tapeworms, and hookworms. Keep your pet safe and healthy.
+            </p>
+            <div>
+                <a href="{{ url_for('add_deworming', pet_id=pet.id) }}" class="btn btn-primary px-4 py-2 fw-semibold">
+                    ➕ Add First Deworming Record
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+</main>
+
+<!-- =========================================================
+     FOOTER
+========================================================= -->
+<footer class="bg-dark text-white text-center py-4 mt-5">
+    <div class="container">
+        <p class="mb-1">
+            🐾 <strong>PawCare</strong>
+        </p>
+        <small class="text-white-50">
+            Smart Pet Care &amp; Safety Platform
+        </small>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+</body>
+
+</html>

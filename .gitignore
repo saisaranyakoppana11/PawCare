@@ -1,0 +1,14 @@
+﻿venv/
+.venv/
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+data/
+datasets/
+test_outputs/
+runs/
+dog_disease_final_dataset/
+new_dataset/
+*.cache

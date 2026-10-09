@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PawCare | Health Assistant</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- PawCare CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        body {
+            background-color: #f7f9fc;
+            min-height: 100vh;
+        }
+
+        .hero-health {
+            background: linear-gradient(135deg, #881337 0%, #be123c 45%, #e11d48 100%);
+            color: #ffffff;
+            border-radius: 20px;
+            padding: 2.75rem 2rem;
+            margin-bottom: 2.25rem;
+            box-shadow: 0 12px 36px rgba(190, 18, 60, 0.22);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-health h1 {
+            color: #ffffff !important;
+            font-weight: 800;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+        }
+
+        .hero-health p {
+            color: #f1f5f9 !important;
+            opacity: 1 !important;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+        }
+
+        .hero-health::after {
+            content: "🩺";
+            position: absolute;
+            right: 25px;
+            bottom: -15px;
+            font-size: 8rem;
+            opacity: 0.12;
+            pointer-events: none;
+        }
+
+        .health-chip {
+            background: rgba(255, 255, 255, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(8px);
+            border-radius: 30px;
+            padding: 6px 16px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #ffffff;
+        }
+
+        .section-badge-live {
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+            font-size: 0.82rem;
+            font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 30px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .section-badge-soon {
+            background-color: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+            font-size: 0.82rem;
+            font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 30px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card-custom {
+            border: none;
+            border-radius: 18px;
+            background: #ffffff;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card-custom:hover {
+            box-shadow: 0 8px 26px rgba(0, 0, 0, 0.09);
+        }
+
+        .card-soon {
+            background: #fafaf9;
+            border: 1px dashed #cbd5e1;
+            position: relative;
+        }
+
+        .disclaimer-alert {
+            background-color: #fffbeb;
+            border-left: 5px solid #f59e0b;
+            border-radius: 14px;
+            padding: 20px 24px;
+            color: #92400e;
+            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.08);
+        }
+
+        .pipeline-step {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 10px;
+        }
+
+        .pipeline-badge-active {
+            background-color: #10b981;
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .pipeline-badge-reserved {
+            background-color: #f59e0b;
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .pet-photo-thumb {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 14px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .pet-avatar-placeholder {
+            width: 80px;
+            height: 80px;
+            border-radius: 14px;
+            background-color: #fce7f3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+        }
+
+        .symptom-tag-btn {
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: #475569;
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .symptom-tag-btn.active {
+            background: #be123c;
+            color: #ffffff;
+            border-color: #be123c;
+            box-shadow: 0 2px 8px rgba(190, 18, 60, 0.25);
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- =========================================================
+     NAVBAR
+========================================================= -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="{{ url_for('dashboard') if current_user.is_authenticated else url_for('home') }}">
+            🐾 PawCare
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
+            aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <ul class="navbar-nav ms-auto align-items-lg-center">
+                {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('dashboard') }}">
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('vaccinations') }}">
+                            💉 Vaccinations
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('deworming') }}">
+                            💊 Deworming
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('notifications') }}">
+                            🔔 Notifications
+                            {% if nav_notification_count and nav_notification_count > 0 %}
+                                <span class="badge bg-danger rounded-pill ms-1">{{ nav_notification_count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-warning fw-semibold" href="{{ url_for('lost_found') }}">
+                            🔍 Lost &amp; Found
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-danger fw-semibold" href="{{ url_for('emergency') }}">
+                            🚨 Emergency
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-info fw-semibold" href="{{ url_for('ai_prediction') }}">
+                            🤖 AI Analysis
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active text-danger fw-bold" href="{{ url_for('health_assistant') }}">
+                            ❤️ Health Assistant
+                        </a>
+                    </li>
+                    {% include 'includes/nav_profile_dropdown.html' %}
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('home') }}">
+                            Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-warning fw-semibold" href="{{ url_for('lost_found') }}">
+                            🔍 Lost &amp; Found
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-danger fw-semibold" href="{{ url_for('emergency') }}">
+                            🚨 Emergency
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-info fw-semibold" href="{{ url_for('ai_prediction') }}">
+                            🤖 AI Analysis
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active text-danger fw-bold" href="{{ url_for('health_assistant') }}">
+                            ❤️ Health Assistant
+                        </a>
+                    </li>
+                    <li class="nav-item ms-lg-2">
+                        <a class="btn btn-outline-light btn-sm" href="{{ url_for('login') }}">
+                            Login
+                        </a>
+                    </li>
+                    <li class="nav-item ms-lg-2">
+                        <a class="btn btn-primary btn-sm" href="{{ url_for('register') }}">
+                            Register
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- =========================================================
+     MAIN CONTENT
+========================================================= -->
+<main class="container py-4">
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="mb-4">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- =====================================================
+         HERO SECTION
+    ====================================================== -->
+    <section class="hero-health">
+        <div class="row align-items-center">
+            <div class="col-lg-9">
+                <span class="badge bg-white text-danger fw-bold px-3 py-2 rounded-pill mb-3">
+                    ❤️ Health &amp; Clinical Care Assistant
+                </span>
+                <h1 class="fw-bold mb-2">
+                    PawCare Health Assistant
+                </h1>
+                <p class="text-white fs-5 mb-3" style="opacity: 0.95;">
+                    A centralized health intelligence hub designed to help pet owners monitor medical timelines, prepare for veterinary visits, and leverage existing AI vision tools while clinical disease models undergo laboratory calibration.
+                </p>
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="health-chip">✨ Live: Pet Profiles &amp; Medical Records</span>
+                    <span class="health-chip">🤖 Live: AI Species &amp; Breed Vision</span>
+                    <span class="health-chip">🚨 Live: Emergency Guidance</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =====================================================
+         SECTION 1: CURRENTLY AVAILABLE (ACTIVE TOOLS)
+    ====================================================== -->
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
+        <div>
+            <span class="section-badge-live">● Currently Available in PawCare</span>
+            <h3 class="fw-bold text-dark mt-2 mb-0">Active Health &amp; AI Tools</h3>
+        </div>
+        <p class="text-muted small mb-0">Functional modules fully operational and integrated today.</p>
+    </div>
+
+    <div class="row g-4 mb-5">
+
+        <!-- 1. PET HEALTH RECORDS & IMMUNIZATION OVERVIEW -->
+        <div class="col-lg-7">
+            <div class="card card-custom h-100 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="fs-4">📋</span>
+                        <h5 class="fw-bold text-dark mb-0">Pet Health &amp; Immunization Profile</h5>
+                    </div>
+                    {% if current_user.is_authenticated and pets %}
+                        <!-- Pet Switcher Dropdown -->
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown">
+                                🐾 {{ selected_pet.name if selected_pet else 'Select Pet' }}
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                {% for pet in pets %}
+                                    <li>
+                                        <a class="dropdown-item {% if selected_pet and selected_pet.id == pet.id %}active{% endif %}" href="{{ url_for('health_assistant', pet_id=pet.id) }}">
+                                            {{ '🐱' if pet.species|lower == 'cat' else '🐶' }} {{ pet.name }} ({{ pet.breed or 'Mixed' }})
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                </div>
+
+                {% if current_user.is_authenticated %}
+                    {% if selected_pet %}
+                        <!-- Selected Pet Card -->
+                        <div class="p-3 bg-light rounded-3 mb-3">
+                            <div class="d-flex align-items-center gap-3">
+                                {% if selected_pet.photo %}
+                                    <img src="{{ url_for('uploaded_file', filename=selected_pet.photo) }}" alt="{{ selected_pet.name }}" class="pet-photo-thumb">
+                                {% else %}
+                                    <div class="pet-avatar-placeholder">
+                                        {{ '🐱' if selected_pet.species|lower == 'cat' else '🐶' }}
+                                    </div>
+                                {% endif %}
+                                <div class="flex-grow-1">
+                                    <h5 class="fw-bold text-dark mb-1">{{ selected_pet.name }}</h5>
+                                    <div class="d-flex flex-wrap gap-2 text-muted small">
+                                        <span><strong>Species:</strong> {{ selected_pet.species }}</span>
+                                        <span>&bull;</span>
+                                        <span><strong>Breed:</strong> {{ selected_pet.breed or 'Not Specified' }}</span>
+                                        <span>&bull;</span>
+                                        <span><strong>Age:</strong> {{ selected_pet.age }} yrs</span>
+                                        <span>&bull;</span>
+                                        <span><strong>Gender:</strong> {{ selected_pet.gender or 'N/A' }}</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <a href="{{ url_for('pet_profile', pet_id=selected_pet.id) }}" class="btn btn-sm btn-outline-primary rounded-pill">
+                                        Full Profile &rarr;
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Immunization & Deworming Status Row -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-6">
+                                <div class="border rounded-3 p-3 bg-white h-100">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="fw-bold text-dark small">💉 Vaccinations</span>
+                                        <a href="{{ url_for('pet_vaccinations', pet_id=selected_pet.id) }}" class="btn btn-link btn-sm p-0 text-decoration-none">
+                                            Manage
+                                        </a>
+                                    </div>
+                                    {% if selected_pet.overdue_vaccinations %}
+                                        <div class="badge bg-danger-subtle text-danger border border-danger p-2 d-block text-start mb-1">
+                                            ⚠️ {{ selected_pet.overdue_vaccinations|length }} Overdue Vaccine(s)
+                                        </div>
+                                    {% elif selected_pet.upcoming_vaccinations %}
+                                        <div class="badge bg-warning-subtle text-warning border border-warning p-2 d-block text-start mb-1">
+                                            🔔 {{ selected_pet.upcoming_vaccinations|length }} Upcoming Vaccine(s)
+                                        </div>
+                                    {% else %}
+                                        <div class="badge bg-success-subtle text-success border border-success p-2 d-block text-start mb-1">
+                                            ✓ Up to date ({{ selected_pet.vaccinations|length }} records)
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="col-sm-6">
+                                <div class="border rounded-3 p-3 bg-white h-100">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="fw-bold text-dark small">💊 Deworming</span>
+                                        <a href="{{ url_for('pet_deworming', pet_id=selected_pet.id) }}" class="btn btn-link btn-sm p-0 text-decoration-none">
+                                            Manage
+                                        </a>
+                                    </div>
+                                    {% if selected_pet.overdue_dewormings %}
+                                        <div class="badge bg-danger-subtle text-danger border border-danger p-2 d-block text-start mb-1">
+                                            ⚠️ {{ selected_pet.overdue_dewormings|length }} Overdue Deworming(s)
+                                        </div>
+                                    {% elif selected_pet.upcoming_dewormings %}
+                                        <div class="badge bg-warning-subtle text-warning border border-warning p-2 d-block text-start mb-1">
+                                            🔔 {{ selected_pet.upcoming_dewormings|length }} Upcoming Deworming(s)
+                                        </div>
+                                    {% else %}
+                                        <div class="badge bg-success-subtle text-success border border-success p-2 d-block text-start mb-1">
+                                            ✓ Up to date ({{ selected_pet.dewormings|length }} records)
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                    {% else %}
+                        <!-- No pets registered yet -->
+                        <div class="text-center py-4 bg-light rounded-3">
+                            <span class="fs-1 d-block mb-2">🐾</span>
+                            <h6 class="fw-bold text-dark">No pets registered yet</h6>
+                            <p class="text-muted small mb-3">Add your pet to monitor health records and immunization schedules.</p>
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-sm rounded-pill px-3">
+                                + Add Pet to Dashboard
+                            </a>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <!-- Guest View -->
+                    <div class="text-center py-4 bg-light rounded-3">
+                        <span class="fs-1 d-block mb-2">🔐</span>
+                        <h6 class="fw-bold text-dark">Log In to View Your Pet Records</h6>
+                        <p class="text-muted small mb-3">Access full vaccination timelines, deworming histories, and automated reminder notifications.</p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3">Login</a>
+                            <a href="{{ url_for('register') }}" class="btn btn-primary btn-sm rounded-pill px-3">Create Free Account</a>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <p class="text-muted small mb-0 mt-3">
+                    💡 Maintain regular preventative veterinary care to protect your companion from common communicable illnesses.
+                </p>
+            </div>
+        </div>
+
+        <!-- 2. AI SPECIES & BREED VISION (ACTIVE DEEP LEARNING) -->
+        <div class="col-lg-5">
+            <div class="card card-custom h-100 p-4 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <span class="fs-4">🤖</span>
+                        <h5 class="fw-bold text-dark mb-0">Deep Learning Vision Analyzer</h5>
+                    </div>
+                    <p class="text-muted small mb-3">
+                        PawCare's multi-stage neural vision models are live and ready to classify your pet's exact species and purebred lineage.
+                    </p>
+                    <div class="bg-light p-3 rounded-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small fw-bold text-dark">🐱 Cat Breed Classifier</span>
+                            <span class="badge bg-success">10 Classes Active</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="small fw-bold text-dark">🐶 Dog Breed Classifier</span>
+                            <span class="badge bg-primary">30+ Classes Active</span>
+                        </div>
+                    </div>
+                    <ul class="text-muted small ps-3 mb-4" style="line-height: 1.7;">
+                        <li>Fast CPU inference (1-2 seconds).</li>
+                        <li>Automated binary species validation.</li>
+                        <li>Top-3 candidate breed breakdowns with confidence scores.</li>
+                    </ul>
+                </div>
+                <div>
+                    <a href="{{ url_for('ai_prediction') }}" class="btn btn-info text-white fw-bold w-100 py-2 rounded-pill shadow-sm">
+                        🚀 Launch AI Breed Analysis
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 3. INTERACTIVE PRE-VET VISIT SYMPTOM & OBSERVATION LOGGER -->
+    <div class="card card-custom p-4 p-lg-5 mb-5">
+        <div class="row g-4 align-items-center">
+            <div class="col-lg-7">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="fs-3">📝</span>
+                    <h4 class="fw-bold text-dark mb-0">Veterinary Visit Preparation &amp; Symptom Logger</h4>
+                </div>
+                <p class="text-muted small mb-4">
+                    Document physical observations, behavioral changes, and symptom timelines to give your veterinarian precise clinical context during your appointment.
+                </p>
+
+                <!-- Symptom Tag Selector -->
+                <label class="form-label fw-bold text-dark small mb-2">Common Observed Symptoms / Signs:</label>
+                <div class="d-flex flex-wrap gap-2 mb-3" id="symptomTagContainer">
+                    <button type="button" class="symptom-tag-btn" data-tag="Decreased Energy / Lethargy">💤 Lethargy / Low Energy</button>
+                    <button type="button" class="symptom-tag-btn" data-tag="Loss of Appetite">🥣 Loss of Appetite</button>
+                    <button type="button" class="symptom-tag-btn" data-tag="Vomiting or Nausea">🤢 Vomiting / Nausea</button>
+                    <button type="button" class="symptom-tag-btn" data-tag="Diarrhea / Loose Stool">🚽 Diarrhea / Loose Stool</button>
+                    <button type="button" class="symptom-tag-btn" data-tag="Limping or Joint Stiffness">🦴 Limping / Stiffness</button>
+                    <button type="button" class="symptom-tag-btn" data-tag="Excessive Scratching / Itching">🪮 Itching / Scratching</button>
+                    <button type="button" class="symptom-tag-btn" data-tag="Coughing or Sneezing">😮‍💨 Coughing / Sneezing</button>
+                    <button type="button" class="symptom-tag-btn" data-tag="Excessive Thirst / Urination">💧 Excessive Thirst</button>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-dark small">Duration of Symptoms:</label>
+                        <select class="form-select form-select-sm" id="symptomDuration">
+                            <option value="Less than 24 hours">Less than 24 hours</option>
+                            <option value="1 to 3 days" selected>1 to 3 days</option>
+                            <option value="4 to 7 days">4 to 7 days</option>
+                            <option value="Over a week">Over a week (Chronic)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-dark small">General Severity:</label>
+                        <select class="form-select form-select-sm" id="symptomSeverity">
+                            <option value="Mild (Noticeable but active)">Mild (Noticeable but active)</option>
+                            <option value="Moderate (Clear discomfort)">Moderate (Clear discomfort)</option>
+                            <option value="Severe / Critical (Needs prompt vet care)">Severe (Needs prompt vet care)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-dark small">Additional Observations / Notes:</label>
+                    <textarea class="form-control form-control-sm" id="symptomNotes" rows="3" placeholder="e.g. Started after walk in park, refuses favorite treats, whimpered when touched on left paw..."></textarea>
+                </div>
+
+                <button type="button" class="btn btn-outline-danger btn-sm fw-bold px-4 py-2 rounded-pill" id="generateSummaryBtn">
+                    📋 Generate Veterinary Visit Summary
+                </button>
+            </div>
+
+            <!-- Compiled Summary Output -->
+            <div class="col-lg-5">
+                <div class="card border-0 bg-light p-4 rounded-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="fw-bold text-dark mb-0">🐾 Vet Visit Summary Card</h6>
+                        <button type="button" class="btn btn-sm btn-outline-secondary d-none" id="copySummaryBtn">
+                            📋 Copy
+                        </button>
+                    </div>
+                    <div id="summaryOutput" class="text-secondary small font-monospace bg-white p-3 rounded-3 border" style="min-height: 180px; white-space: pre-wrap;">
+Click "Generate Vet Summary" to compile your notes into a clean report you can show your veterinarian or clinic reception.
+                    </div>
+                    <div class="mt-3">
+                        <a href="{{ url_for('emergency') }}" class="btn btn-outline-danger btn-sm w-100 rounded-pill fw-semibold">
+                            🚨 Facing an urgent emergency? View Emergency Guide &rarr;
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- =====================================================
+         VETERINARY & MEDICAL DISCLAIMER
+    ====================================================== -->
+    <div class="disclaimer-alert mb-5">
+        <div class="d-flex align-items-start gap-3">
+            <span class="fs-3">⚠️</span>
+            <div>
+                <h5 class="fw-bold mb-1">Veterinary &amp; Medical Disclaimer</h5>
+                <p class="small mb-0" style="line-height: 1.6;">
+                    The PawCare Health Assistant is an informational, organizational, and educational resource intended to assist pet parents in recording observations and preparing for consultations with veterinary professionals. It is <strong>never</strong> a substitute for clinical veterinary diagnosis, in-person examination, or emergency medical treatment. If your pet exhibits sudden lethargy, respiratory distress, seizures, suspected poisoning, or traumatic injuries, immediately contact a licensed veterinarian or a 24-hour emergency animal hospital.
+                </p>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<!-- =========================================================
+     FOOTER
+========================================================= -->
+<footer class="bg-dark text-white py-4 mt-5">
+    <div class="container text-center">
+        <p class="mb-1 fw-bold">🐾 PawCare &mdash; Smart Pet Care &amp; Safety Platform</p>
+        <p class="text-muted small mb-0">
+            Committed to ethical AI and pet wellness &bull; Always consult a licensed veterinarian
+        </p>
+    </div>
+</footer>
+
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+<!-- Interactive Symptom Preparation JS -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const tagButtons = document.querySelectorAll(".symptom-tag-btn");
+        const generateBtn = document.getElementById("generateSummaryBtn");
+        const summaryOutput = document.getElementById("summaryOutput");
+        const copyBtn = document.getElementById("copySummaryBtn");
+        const durationSelect = document.getElementById("symptomDuration");
+        const severitySelect = document.getElementById("symptomSeverity");
+        const notesText = document.getElementById("symptomNotes");
+
+        // Toggle symptom selection
+        tagButtons.forEach(btn => {
+            btn.addEventListener("click", function () {
+                this.classList.toggle("active");
+            });
+        });
+
+        // Generate clean summary card
+        generateBtn.addEventListener("click", function () {
+            const selectedTags = [];
+            document.querySelectorAll(".symptom-tag-btn.active").forEach(btn => {
+                selectedTags.push(btn.getAttribute("data-tag"));
+            });
+
+            const petName = "{{ selected_pet.name if selected_pet else 'My Pet' }}";
+            const petBreed = "{{ selected_pet.breed if selected_pet and selected_pet.breed else 'Companion Pet' }}";
+            const duration = durationSelect.value;
+            const severity = severitySelect.value;
+            const notes = notesText.value.trim() || "No additional notes provided.";
+
+            let summary = `========================================================\n`;
+            summary += `🐾 PAWCARE VETERINARY VISIT PREPARATION SUMMARY\n`;
+            summary += `========================================================\n\n`;
+            summary += `Patient: ${petName} (${petBreed})\n`;
+            summary += `Date: ${new Date().toLocaleDateString()}\n\n`;
+            summary += `OBSERVED SYMPTOMS / SIGNS:\n`;
+            if (selectedTags.length > 0) {
+                selectedTags.forEach((tag, idx) => {
+                    summary += `  ${idx + 1}. ${tag}\n`;
+                });
+            } else {
+                summary += `  (No specific symptom tags selected)\n`;
+            }
+            summary += `\nDURATION: ${duration}\n`;
+            summary += `SEVERITY: ${severity}\n\n`;
+            summary += `DETAILED NOTES & CONTEXT:\n${notes}\n\n`;
+            summary += `========================================================\n`;
+            summary += `* Prepared using PawCare Health Assistant for clinical discussion.\n`;
+
+            summaryOutput.textContent = summary;
+            copyBtn.classList.remove("d-none");
+            summaryOutput.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        });
+
+        // Copy to clipboard
+        copyBtn.addEventListener("click", function () {
+            navigator.clipboard.writeText(summaryOutput.textContent).then(() => {
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = "✓ Copied!";
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                }, 2000);
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PawCare | Edit Report #{{ report.id }}</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- PawCare CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        body {
+            background-color: #f7f9fc;
+            min-height: 100vh;
+        }
+
+        .form-card {
+            border: none;
+            border-radius: 18px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+            background: #ffffff;
+        }
+
+        .section-header {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #1e293b;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 8px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .photo-preview-box {
+            width: 140px;
+            height: 140px;
+            border-radius: 16px;
+            border: 2px dashed #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background-color: #f8fafc;
+            margin-bottom: 12px;
+            cursor: pointer;
+        }
+
+        .photo-preview-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .required-star {
+            color: #dc3545;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- =========================================================
+     NAVBAR
+========================================================= -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="{{ url_for('dashboard') }}">
+            🐾 PawCare
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
+            aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <ul class="navbar-nav ms-auto align-items-lg-center">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('dashboard') }}">
+                        Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('notifications') }}">
+                        🔔 Notifications
+                        {% if nav_notification_count and nav_notification_count > 0 %}
+                            <span class="badge bg-danger rounded-pill ms-1">{{ nav_notification_count }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active fw-bold text-warning" href="{{ url_for('lost_found') }}">
+                        🔍 Lost &amp; Found
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-danger fw-semibold" href="{{ url_for('emergency') }}">
+                        🚨 Emergency
+                    </a>
+                </li>
+                {% include 'includes/nav_profile_dropdown.html' %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- =========================================================
+     MAIN CONTENT
+========================================================= -->
+<main class="container py-4 py-md-5" style="max-width: 820px;">
+
+    <!-- Back Navigation -->
+    <div class="mb-3">
+        <a href="{{ url_for('lost_found_detail', report_id=report.id) }}" class="text-decoration-none text-muted small fw-semibold">
+            &larr; Back to Report Details
+        </a>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="mb-4">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category if category in ['success', 'danger', 'warning', 'info'] else 'info' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="form-card p-4 p-md-5">
+
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <span style="font-size: 36px;">✏️</span>
+            <div>
+                <h2 class="fw-bold text-dark mb-1">
+                    Edit {{ report.type_label }} Report
+                </h2>
+                <p class="text-muted small mb-0">
+                    Update information, photo, location, or contact details for report #{{ report.id }}.
+                </p>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('edit_lost_found', report_id=report.id) }}" enctype="multipart/form-data">
+
+            <!-- 1. Animal Details -->
+            <div class="section-header">
+                <span>🐾 Pet Information</span>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label for="pet_name" class="form-label fw-semibold">
+                        {{ 'Pet Name' if report.is_lost else 'Temporary Name / Tag' }}
+                    </label>
+                    <input type="text" class="form-control" id="pet_name" name="pet_name"
+                           value="{{ report.pet_name or '' }}">
+                </div>
+
+                <div class="col-md-6">
+                    <label for="species" class="form-label fw-semibold">
+                        Species <span class="required-star">*</span>
+                    </label>
+                    <select class="form-select" id="species" name="species" required>
+                        <option value="Dog" {{ 'selected' if report.species == 'Dog' else '' }}>Dog</option>
+                        <option value="Cat" {{ 'selected' if report.species == 'Cat' else '' }}>Cat</option>
+                        <option value="Other" {{ 'selected' if report.species == 'Other' else '' }}>Other</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="breed" class="form-label fw-semibold">Breed</label>
+                    <input type="text" class="form-control" id="breed" name="breed"
+                           value="{{ report.breed or '' }}">
+                </div>
+
+                <div class="col-md-3">
+                    <label for="gender" class="form-label fw-semibold">Gender</label>
+                    <select class="form-select" id="gender" name="gender">
+                        <option value="Unknown" {{ 'selected' if report.gender == 'Unknown' else '' }}>Unknown</option>
+                        <option value="Male" {{ 'selected' if report.gender == 'Male' else '' }}>Male</option>
+                        <option value="Female" {{ 'selected' if report.gender == 'Female' else '' }}>Female</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="color" class="form-label fw-semibold">Color / Markings</label>
+                    <input type="text" class="form-control" id="color" name="color"
+                           value="{{ report.color or '' }}">
+                </div>
+            </div>
+
+            <!-- 2. Photo -->
+            <div class="section-header">
+                <span>📷 Photo</span>
+            </div>
+
+            <div class="row align-items-center mb-4">
+                <div class="col-auto">
+                    <div class="photo-preview-box" id="previewBox" onclick="document.getElementById('photoInput').click()">
+                        {% if report.photo %}
+                            <img id="photoPreviewImg" src="{{ url_for('uploaded_file', filename=report.photo) }}" alt="Pet Preview">
+                            <span id="previewPlaceholder" style="display: none; font-size: 36px;">📷</span>
+                        {% else %}
+                            <span id="previewPlaceholder" style="font-size: 36px;">📷</span>
+                            <img id="photoPreviewImg" src="" alt="Pet Preview" style="display: none;">
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col">
+                    <label for="photoInput" class="form-label fw-semibold">Change Photo (Optional)</label>
+                    <input class="form-control" type="file" id="photoInput" name="photo" accept=".png, .jpg, .jpeg, .gif, .webp">
+                    <small class="text-muted d-block mt-1">
+                        Leave blank to keep your current photo. Select a new image to replace it.
+                    </small>
+                </div>
+            </div>
+
+            <!-- 3. Location & Time -->
+            <div class="section-header">
+                <span>📍 Location &amp; Date</span>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-8">
+                    <label for="location" class="form-label fw-semibold">
+                        {{ 'Last Seen Location' if report.is_lost else 'Found Location' }} <span class="required-star">*</span>
+                    </label>
+                    <input type="text" class="form-control" id="location" name="location"
+                           value="{{ report.location }}" required>
+                </div>
+
+                <div class="col-md-4">
+                    <label for="city" class="form-label fw-semibold">City / Area</label>
+                    <input type="text" class="form-control" id="city" name="city"
+                           value="{{ report.city or '' }}">
+                </div>
+
+                <div class="col-md-6">
+                    <label for="report_date" class="form-label fw-semibold">
+                        Date <span class="required-star">*</span>
+                    </label>
+                    <input type="date" class="form-control" id="report_date" name="report_date"
+                           value="{{ report.report_date.strftime('%Y-%m-%d') }}" required>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="report_time" class="form-label fw-semibold">Time</label>
+                    <input type="text" class="form-control" id="report_time" name="report_time"
+                           value="{{ report.report_time or '' }}">
+                </div>
+            </div>
+
+            <!-- 4. Description -->
+            <div class="section-header">
+                <span>📝 Description</span>
+            </div>
+
+            <div class="mb-4">
+                <label for="description" class="form-label fw-semibold">
+                    Details &amp; Distinguishing Marks <span class="required-star">*</span>
+                </label>
+                <textarea class="form-control" id="description" name="description" rows="4" required>{{ report.description }}</textarea>
+            </div>
+
+            <!-- 5. Safe Contact -->
+            <div class="section-header">
+                <span>🔒 Contact Information</span>
+            </div>
+
+            <div class="p-3 bg-light rounded-3 mb-4 border">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="contact_name" class="form-label fw-semibold small">Contact Name</label>
+                        <input type="text" class="form-control form-control-sm" id="contact_name" name="contact_name"
+                               value="{{ report.contact_name or current_user.name }}">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="contact_phone" class="form-label fw-semibold small">Phone (Optional)</label>
+                        <input type="tel" class="form-control form-control-sm" id="contact_phone" name="contact_phone"
+                               value="{{ report.contact_phone or '' }}">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="contact_email" class="form-label fw-semibold small">Email</label>
+                        <input type="email" class="form-control form-control-sm" id="contact_email" name="contact_email"
+                               value="{{ report.contact_email or current_user.email }}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{{ url_for('lost_found_detail', report_id=report.id) }}" class="btn btn-outline-secondary px-4">
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm">
+                    Save Changes
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+
+</main>
+
+<footer class="bg-dark text-white text-center py-4 mt-5">
+    <div class="container">
+        <p class="mb-1">🐾 <strong>PawCare</strong></p>
+        <small class="text-white-50">Community Lost &amp; Found Network</small>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    const photoInput = document.getElementById('photoInput');
+    const previewImg = document.getElementById('photoPreviewImg');
+    const previewPlaceholder = document.getElementById('previewPlaceholder');
+
+    photoInput.addEventListener('change', function(e) {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                previewImg.src = evt.target.result;
+                previewImg.style.display = 'block';
+                if (previewPlaceholder) previewPlaceholder.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+
+</body>
+</html>

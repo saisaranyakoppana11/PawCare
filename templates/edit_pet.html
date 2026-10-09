@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PawCare | Edit {{ pet.name }}</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- PawCare CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        .photo-thumb-container {
+            width: 130px;
+            height: 130px;
+            border-radius: 14px;
+            overflow: hidden;
+            background-color: #f1f3f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #e9ecef;
+            flex-shrink: 0;
+        }
+
+        .photo-thumb-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-preview-box {
+            width: 130px;
+            height: 130px;
+            border-radius: 14px;
+            overflow: hidden;
+            background-color: #f8f9fa;
+            border: 2px dashed #0d6efd;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .photo-preview-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    </style>
+
+</head>
+
+<body>
+
+<!-- =========================================================
+     NAVBAR
+========================================================= -->
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="{{ url_for('dashboard') }}">
+            🐾 PawCare
+        </a>
+
+        <a href="{{ url_for('pet_profile', pet_id=pet.id) }}" class="btn btn-outline-light btn-sm">
+            ← Pet Profile
+        </a>
+    </div>
+</nav>
+
+<!-- =========================================================
+     MAIN CONTENT
+========================================================= -->
+<main class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4 p-md-5">
+
+                    <!-- HEADER -->
+                    <h1 class="fw-bold mb-2">
+                        Edit Pet
+                    </h1>
+                    <p class="text-muted mb-4">
+                        Update {{ pet.name }}'s information.
+                    </p>
+
+                    <!-- FLASH MESSAGES -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'danger' if category == 'error' else category if category in ['success', 'danger', 'warning', 'info'] else 'info' }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <!-- =================================================
+                         EDIT FORM
+                    ================================================== -->
+                    <form method="POST" action="{{ url_for('edit_pet', pet_id=pet.id) }}" enctype="multipart/form-data">
+
+                        <!-- PET NAME -->
+                        <div class="mb-3">
+                            <label for="name" class="form-label fw-semibold">
+                                Pet Name <span class="text-danger">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="name"
+                                name="name"
+                                value="{{ pet.name }}"
+                                maxlength="100"
+                                required
+                            >
+                        </div>
+
+                        <!-- SPECIES -->
+                        <div class="mb-3">
+                            <label for="species" class="form-label fw-semibold">
+                                Species <span class="text-danger">*</span>
+                            </label>
+                            <select
+                                class="form-select"
+                                id="species"
+                                name="species"
+                                required
+                            >
+                                <option value="">Select species</option>
+                                <option value="dog" {% if pet.species|lower == 'dog' %}selected{% endif %}>
+                                    🐶 Dog
+                                </option>
+                                <option value="cat" {% if pet.species|lower == 'cat' %}selected{% endif %}>
+                                    🐱 Cat
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- BREED -->
+                        <div class="mb-3">
+                            <label for="breed" class="form-label fw-semibold">
+                                Breed
+                            </label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="breed"
+                                name="breed"
+                                value="{{ pet.breed or '' }}"
+                                maxlength="100"
+                                placeholder="Example: Persian, Beagle"
+                            >
+                        </div>
+
+                        <!-- GENDER -->
+                        <div class="mb-3">
+                            <label for="gender" class="form-label fw-semibold">
+                                Gender
+                            </label>
+                            <select
+                                class="form-select"
+                                id="gender"
+                                name="gender"
+                            >
+                                <option value="">Prefer not to specify</option>
+                                <option value="Male" {% if pet.gender == 'Male' %}selected{% endif %}>
+                                    Male
+                                </option>
+                                <option value="Female" {% if pet.gender == 'Female' %}selected{% endif %}>
+                                    Female
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- DATE OF BIRTH -->
+                        <div class="mb-3">
+                            <label for="date_of_birth" class="form-label fw-semibold">
+                                Date of Birth
+                            </label>
+                            <input
+                                type="date"
+                                class="form-control"
+                                id="date_of_birth"
+                                name="date_of_birth"
+                                value="{{ pet.date_of_birth.isoformat() if pet.date_of_birth else '' }}"
+                            >
+                            <div class="form-text">
+                                If you provide the date of birth, PawCare can calculate the pet's age.
+                            </div>
+                        </div>
+
+                        <!-- AGE -->
+                        <div class="mb-4">
+                            <label for="age" class="form-label fw-semibold">
+                                Age in Years
+                            </label>
+                            <input
+                                type="number"
+                                class="form-control"
+                                id="age"
+                                name="age"
+                                value="{{ pet.age if pet.age is not none else '' }}"
+                                min="0"
+                                max="100"
+                            >
+                            <div class="form-text">
+                                Use this when the exact date of birth is not available.
+                            </div>
+                        </div>
+
+                        <!-- PET PHOTO -->
+                        <div class="mb-4 p-3 bg-light rounded-3">
+                            <label class="form-label fw-semibold mb-3">
+                                Pet Photo
+                            </label>
+
+                            <div class="d-flex flex-column flex-sm-row align-items-start gap-3">
+                                <!-- CURRENT PHOTO THUMBNAIL -->
+                                <div>
+                                    <div class="photo-thumb-container" id="currentThumb">
+                                        {% if pet.photo %}
+                                            <img src="{{ url_for('uploaded_file', filename=pet.photo) }}" alt="{{ pet.name }}">
+                                        {% elif pet.species|lower == 'cat' %}
+                                            <span style="font-size: 50px;">🐱</span>
+                                        {% elif pet.species|lower == 'dog' %}
+                                            <span style="font-size: 50px;">🐶</span>
+                                        {% else %}
+                                            <span style="font-size: 50px;">🐾</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-center mt-1">
+                                        <small class="text-muted">Current</small>
+                                    </div>
+                                </div>
+
+                                <!-- NEW PHOTO PREVIEW (HIDDEN INITIALLY) -->
+                                <div id="previewWrapper" style="display: none;">
+                                    <div class="photo-preview-box" id="newPreviewBox">
+                                        <img id="newPreviewImg" src="#" alt="New Preview">
+                                    </div>
+                                    <div class="text-center mt-1">
+                                        <small class="text-primary fw-semibold">New Photo</small>
+                                    </div>
+                                </div>
+
+                                <!-- UPLOAD CONTROLS -->
+                                <div class="flex-grow-1">
+                                    <label for="photo" class="form-label small text-muted">
+                                        Upload new photo
+                                    </label>
+                                    <input
+                                        type="file"
+                                        class="form-control"
+                                        id="photo"
+                                        name="photo"
+                                        accept=".jpg,.jpeg,.png,.gif,.webp,image/jpeg,image/png,image/gif,image/webp"
+                                    >
+                                    <div class="form-text">
+                                        Formats: JPG, JPEG, PNG, GIF, WEBP (Max 10MB)
+                                    </div>
+
+                                    {% if pet.photo %}
+                                        <div class="form-check mt-3">
+                                            <input class="form-check-input" type="checkbox" name="remove_photo" value="1" id="remove_photo">
+                                            <label class="form-check-label text-danger small fw-semibold" for="remove_photo">
+                                                Remove current photo
+                                            </label>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- BUTTONS -->
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('pet_profile', pet_id=pet.id) }}" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary px-4">
+                                Save Changes
+                            </button>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- =========================================================
+     FOOTER
+========================================================= -->
+<footer class="bg-dark text-white text-center py-4 mt-5">
+    <div class="container">
+        <p class="mb-1">
+            🐾 <strong>PawCare</strong>
+        </p>
+        <small class="text-white-50">
+            Smart Pet Care &amp; Safety Platform
+        </small>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+<script>
+    const photoInput = document.getElementById('photo');
+    const previewWrapper = document.getElementById('previewWrapper');
+    const newPreviewBox = document.getElementById('newPreviewBox');
+    const newPreviewImg = document.getElementById('newPreviewImg');
+    const removeCheckbox = document.getElementById('remove_photo');
+    const currentThumb = document.getElementById('currentThumb');
+
+    if (photoInput) {
+        photoInput.addEventListener('change', function() {
+            const file = this.files && this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    newPreviewImg.src = e.target.result;
+                    newPreviewBox.style.display = 'flex';
+                    previewWrapper.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+                if (removeCheckbox) {
+                    removeCheckbox.checked = false;
+                }
+            } else {
+                newPreviewBox.style.display = 'none';
+                previewWrapper.style.display = 'none';
+            }
+        });
+    }
+
+    if (removeCheckbox) {
+        removeCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                if (currentThumb) currentThumb.style.opacity = '0.35';
+                if (photoInput) photoInput.value = '';
+                if (newPreviewBox) newPreviewBox.style.display = 'none';
+                if (previewWrapper) previewWrapper.style.display = 'none';
+            } else {
+                if (currentThumb) currentThumb.style.opacity = '1';
+            }
+        });
+    }
+</script>
+
+</body>
+
+</html>

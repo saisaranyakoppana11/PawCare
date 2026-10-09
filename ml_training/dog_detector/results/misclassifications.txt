@@ -1,0 +1,11 @@
+PawCare Dog Detector Misclassification Analysis
+============================================================
+
+Total test images: 100
+Misclassified images: 3
+
+Misclassified batch indices:
+
+Index 43: Actual = dog, Predicted = non_dog, Confidence = 0.5893
+Index 50: Actual = non_dog, Predicted = dog, Confidence = 0.5147
+Index 85: Actual = non_dog, Predicted = dog, Confidence = 0.6598

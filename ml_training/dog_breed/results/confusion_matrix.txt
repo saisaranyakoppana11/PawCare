@@ -1,0 +1,27 @@
+PAWCARE - DOG BREED CLASSIFIER
+CONFUSION MATRIX
+======================================================================
+
+Class order:
+0: beagle
+1: boxer
+2: German_shepherd
+3: golden_retriever
+4: pug
+5: shitzu
+6: Siberian_husky
+7: standard_poodle
+8: whippet
+9: Yorkshire_terrier
+
+Confusion Matrix:
+[[5 0 0 0 0 0 0 0 0 0]
+ [0 5 0 0 0 0 0 0 0 0]
+ [0 0 5 0 0 0 0 0 0 0]
+ [0 0 0 5 0 0 0 0 0 0]
+ [0 1 0 0 4 0 0 0 0 0]
+ [0 0 0 0 0 5 0 0 0 0]
+ [0 0 0 0 0 0 5 0 0 0]
+ [0 0 0 0 0 0 0 5 0 0]
+ [0 0 0 0 0 0 0 0 5 0]
+ [0 0 0 0 0 0 0 0 0 5]]

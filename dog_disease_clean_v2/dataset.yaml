@@ -1,0 +1,12 @@
+path: C:/Users/saisa/Documents/PawCare/dog_disease_clean_v2
+
+train: images/train
+val: images/valid
+test: images/test
+
+names:
+  0: demodicosis
+  1: Dermatitis
+  2: Fungal_infections
+  3: Hypersensitivity
+  4: ringworm

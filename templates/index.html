@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>PawCare | Smart Pet Care</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
+</head>
+
+
+<body>
+
+    <!-- =========================================
+         Navigation Bar
+         ========================================= -->
+
+    <header class="navbar">
+
+        <div class="logo">
+            🐾 PawCare
+        </div>
+
+        <nav>
+
+            <a href="{{ url_for('home') }}">
+                Home
+            </a>
+
+            <a href="{{ url_for('lost_found') }}" style="color: #ffc107; font-weight: 700;">
+                🔍 Lost &amp; Found
+            </a>
+
+            <a href="{{ url_for('emergency') }}" style="color: #dc3545; font-weight: 700;">
+                🚨 Emergency
+            </a>
+
+            <a href="{{ url_for('ai_prediction') }}" style="color: #0dcaf0; font-weight: 700;">
+                🤖 AI Analysis
+            </a>
+
+            <a href="{{ url_for('health_assistant') }}" style="color: #e11d48; font-weight: 700;">
+                ❤️ Health
+            </a>
+
+            <a href="{{ url_for('register') }}">
+                Register
+            </a>
+
+            <a href="{{ url_for('login') }}">
+                Login
+            </a>
+
+        </nav>
+
+    </header>
+
+
+    <!-- =========================================
+         Hero Section
+         ========================================= -->
+
+    <main class="hero">
+
+        <div class="hero-content">
+
+            <h1>
+                Welcome to PawCare 🐾
+            </h1>
+
+            <p class="tagline">
+                Smart Pet Care & Safety Platform
+            </p>
+
+            <p class="description">
+                A unified platform designed to help pet owners
+                care for their cats and dogs with smart,
+                convenient, and organized pet-care features.
+            </p>
+
+
+            <div class="hero-buttons">
+
+                <a
+                    href="{{ url_for('register') }}"
+                    class="primary-button"
+                >
+                    Get Started
+                </a>
+
+                <a
+                    href="{{ url_for('login') }}"
+                    class="secondary-button"
+                >
+                    Login
+                </a>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <!-- =========================================
+         Features Section
+         ========================================= -->
+
+    <section class="features-section">
+
+        <div class="section-heading">
+
+            <h2>
+                Everything Your Pet Needs 🐾
+            </h2>
+
+            <p>
+                PawCare brings important pet-care features
+                together in one platform.
+            </p>
+
+        </div>
+
+
+        <div class="features-grid">
+
+
+            <div class="feature-card">
+
+                <div class="feature-icon">
+                    🤖
+                </div>
+
+                <h3>
+                    AI Pet Assistant
+                </h3>
+
+                <p>
+                    Identify cats and dogs using our
+                    AI-powered breed identification system.
+                </p>
+
+                <p style="margin-top: 10px;">
+                    <a href="{{ url_for('ai_prediction') }}" style="color: #0d6efd; font-weight: 600; text-decoration: none;">
+                        Analyze Pet &rarr;
+                    </a>
+                </p>
+
+            </div>
+
+
+            <div class="feature-card">
+
+                <div class="feature-icon">
+                    🚨
+                </div>
+
+                <h3>
+                    Emergency Guidance
+                </h3>
+
+                <p>
+                    Get general guidance for common
+                    pet emergency situations.
+                </p>
+
+                <p style="margin-top: 10px;">
+                    <a href="{{ url_for('emergency') }}" style="color: #dc3545; font-weight: 600; text-decoration: none;">
+                        View Guide &rarr;
+                    </a>
+                </p>
+
+            </div>
+
+
+            <div class="feature-card">
+
+                <div class="feature-icon">
+                    ❤️
+                </div>
+
+                <h3>
+                    Health Assistant
+                </h3>
+
+                <p>
+                    Support early awareness of possible
+                    pet health concerns.
+                </p>
+
+                <p style="margin-top: 10px;">
+                    <a href="{{ url_for('health_assistant') }}" style="color: #e11d48; font-weight: 600; text-decoration: none;">
+                        Explore Health &rarr;
+                    </a>
+                </p>
+
+            </div>
+
+
+            <div class="feature-card">
+
+                <div class="feature-icon">
+                    💉
+                </div>
+
+                <h3>
+                    Vaccination Records
+                </h3>
+
+                <p>
+                    Store your pet's vaccination information
+                    and upcoming dates.
+                </p>
+
+            </div>
+
+
+            <div class="feature-card">
+
+                <div class="feature-icon">
+                    💊
+                </div>
+
+                <h3>
+                    Deworming Records
+                </h3>
+
+                <p>
+                    Keep track of deworming records and
+                    upcoming reminders.
+                </p>
+
+            </div>
+
+
+            <div class="feature-card">
+
+                <div class="feature-icon">
+                    🔍
+                </div>
+
+                <h3>
+                    Lost & Found
+                </h3>
+
+                <p>
+                    Report lost or found pets and discover
+                    possible matches.
+                </p>
+
+                <p style="margin-top: 10px;">
+                    <a href="{{ url_for('lost_found') }}" style="color: #d97706; font-weight: 600; text-decoration: none;">
+                        Explore Listings &rarr;
+                    </a>
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================================
+         Call To Action
+         ========================================= -->
+
+    <section class="cta-section">
+
+        <div class="cta-content">
+
+            <h2>
+                Start Taking Better Care of Your Pet 🐶🐱
+            </h2>
+
+            <p>
+                Create your PawCare account and manage
+                your pet's care from one place.
+            </p>
+
+            <a
+                href="{{ url_for('register') }}"
+                class="primary-button"
+            >
+                Create Your Account
+            </a>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================================
+         Footer
+         ========================================= -->
+
+    <footer>
+
+        <p>
+            © 2026 PawCare | Smart Pet Care & Safety Platform
+        </p>
+
+    </footer>
+
+
+</body>
+
+</html>

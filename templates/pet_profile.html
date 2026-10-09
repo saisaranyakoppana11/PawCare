@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        PawCare | {{ pet.name }}
+    </title>
+
+
+    <!-- Bootstrap 5 -->
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+
+    <!-- PawCare CSS -->
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================================
+     NAVBAR
+========================================================= -->
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+
+    <div class="container">
+
+        <a
+            class="navbar-brand fw-bold"
+            href="{{ url_for('dashboard') }}"
+        >
+            🐾 PawCare
+        </a>
+
+
+        <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarContent"
+        >
+
+            <span class="navbar-toggler-icon"></span>
+
+        </button>
+
+
+        <div
+            class="collapse navbar-collapse"
+            id="navbarContent"
+        >
+
+            <ul class="navbar-nav ms-auto align-items-lg-center">
+
+                <li class="nav-item">
+
+                    <a
+                        class="nav-link"
+                        href="{{ url_for('dashboard') }}"
+                    >
+                        Dashboard
+                    </a>
+
+                </li>
+
+                <li class="nav-item">
+                    <a
+                        class="nav-link"
+                        href="{{ url_for('vaccinations') }}"
+                    >
+                        💉 Vaccinations
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a
+                        class="nav-link"
+                        href="{{ url_for('deworming') }}"
+                    >
+                        💊 Deworming
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a
+                        class="nav-link"
+                        href="{{ url_for('notifications') }}"
+                    >
+                        🔔 Notifications
+                        {% if nav_notification_count and nav_notification_count > 0 %}
+                            <span class="badge bg-danger rounded-pill ms-1">{{ nav_notification_count }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a
+                        class="nav-link text-warning fw-semibold"
+                        href="{{ url_for('lost_found') }}"
+                    >
+                        🔍 Lost &amp; Found
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a
+                        class="nav-link text-danger fw-semibold"
+                        href="{{ url_for('emergency') }}"
+                    >
+                        🚨 Emergency
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a
+                        class="nav-link text-info fw-semibold"
+                        href="{{ url_for('ai_prediction') }}"
+                    >
+                        🤖 AI Analysis
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a
+                        class="nav-link text-danger fw-semibold"
+                        href="{{ url_for('health_assistant', pet_id=pet.id) }}"
+                    >
+                        ❤️ Health Assistant
+                    </a>
+                </li>
+
+
+                {% include 'includes/nav_profile_dropdown.html' %}
+
+            </ul>
+
+        </div>
+
+    </div>
+
+</nav>
+
+
+
+<!-- =========================================================
+     MAIN CONTENT
+========================================================= -->
+
+<main class="container py-5">
+
+
+    <!-- =====================================================
+         FLASH MESSAGES
+    ====================================================== -->
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+
+        {% if messages %}
+
+            <div class="mb-4">
+
+                {% for category, message in messages %}
+
+                    <div
+                        class="alert alert-{{
+                            'danger'
+                            if category == 'error'
+                            else category
+                            if category in ['success', 'danger', 'warning', 'info']
+                            else 'info'
+                        }} alert-dismissible fade show"
+                    >
+
+                        {{ message }}
+
+
+                        <button
+                            type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                        ></button>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
+
+    {% endwith %}
+
+
+
+    <!-- =====================================================
+         BACK TO DASHBOARD
+    ====================================================== -->
+
+    <div class="mb-4">
+
+        <a
+            href="{{ url_for('dashboard') }}"
+            class="btn btn-outline-secondary"
+        >
+
+            ← Back to Dashboard
+
+        </a>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         PET PROFILE
+    ====================================================== -->
+
+    <div class="row g-4">
+
+
+        <!-- =================================================
+             PET SUMMARY
+        ================================================== -->
+
+        <div class="col-lg-5">
+
+            <div
+                class="card border-0 shadow-sm h-100"
+            >
+
+
+                <!-- PET IMAGE -->
+
+                <div
+                    class="d-flex
+                           align-items-center
+                           justify-content-center
+                           bg-light"
+                    style="height: 330px;"
+                >
+
+                    {% if pet.photo %}
+
+                        <img
+                            src="{{
+                                url_for(
+                                    'uploaded_file',
+                                    filename=pet.photo
+                                )
+                            }}"
+                            alt="{{ pet.name }}"
+                            style="
+                                width: 100%;
+                                height: 330px;
+                                object-fit: cover;
+                            "
+                        >
+
+                    {% elif pet.species|lower == 'cat' %}
+
+                        <span style="font-size: 130px;">
+                            🐱
+                        </span>
+
+                    {% elif pet.species|lower == 'dog' %}
+
+                        <span style="font-size: 130px;">
+                            🐶
+                        </span>
+
+                    {% else %}
+
+                        <span style="font-size: 130px;">
+                            🐾
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+
+
+                <!-- PET NAME -->
+
+                <div class="card-body text-center p-4">
+
+                    <h1 class="fw-bold mb-2">
+
+                        {{ pet.name }}
+
+                    </h1>
+
+
+                    <p class="text-muted mb-0">
+
+                        {{ pet.species|capitalize }}
+
+                        {% if pet.breed %}
+
+                            • {{ pet.breed }}
+
+                        {% endif %}
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             PET INFORMATION
+        ================================================== -->
+
+        <div class="col-lg-7">
+
+            <div
+                class="card border-0 shadow-sm h-100"
+            >
+
+                <div class="card-body p-4 p-md-5">
+
+
+                    <!-- HEADER -->
+
+                    <div
+                        class="d-flex
+                               justify-content-between
+                               align-items-center
+                               mb-4"
+                    >
+
+                        <div>
+
+                            <h2 class="fw-bold mb-1">
+
+                                Pet Profile
+
+                            </h2>
+
+
+                            <p class="text-muted mb-0">
+
+                                {{ pet.name }}'s information
+
+                            </p>
+
+                        </div>
+
+
+                        <a
+                            href="{{
+                                url_for(
+                                    'edit_pet',
+                                    pet_id=pet.id
+                                )
+                            }}"
+                            class="btn btn-primary"
+                        >
+
+                            ✏️ Edit
+
+                        </a>
+
+                    </div>
+
+
+
+                    <!-- PET DETAILS -->
+
+                    <div class="row g-3">
+
+
+                        <!-- NAME -->
+
+                        <div class="col-md-6">
+
+                            <div
+                                class="p-3
+                                       bg-light
+                                       rounded"
+                            >
+
+                                <small class="text-muted">
+                                    Name
+                                </small>
+
+                                <div class="fw-semibold">
+
+                                    {{ pet.name }}
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- SPECIES -->
+
+                        <div class="col-md-6">
+
+                            <div
+                                class="p-3
+                                       bg-light
+                                       rounded"
+                            >
+
+                                <small class="text-muted">
+                                    Species
+                                </small>
+
+                                <div class="fw-semibold">
+
+                                    {{ pet.species|capitalize }}
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- BREED -->
+
+                        <div class="col-md-6">
+
+                            <div
+                                class="p-3
+                                       bg-light
+                                       rounded"
+                            >
+
+                                <small class="text-muted">
+                                    Breed
+                                </small>
+
+                                <div class="fw-semibold">
+
+                                    {{ pet.breed or 'Not provided' }}
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- GENDER -->
+
+                        <div class="col-md-6">
+
+                            <div
+                                class="p-3
+                                       bg-light
+                                       rounded"
+                            >
+
+                                <small class="text-muted">
+                                    Gender
+                                </small>
+
+                                <div class="fw-semibold">
+
+                                    {{ pet.gender or 'Not provided' }}
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- DATE OF BIRTH -->
+
+                        <div class="col-md-6">
+
+                            <div
+                                class="p-3
+                                       bg-light
+                                       rounded"
+                            >
+
+                                <small class="text-muted">
+                                    Date of Birth
+                                </small>
+
+                                <div class="fw-semibold">
+
+                                    {% if pet.date_of_birth %}
+
+                                        {{ pet.date_of_birth }}
+
+                                    {% else %}
+
+                                        Not provided
+
+                                    {% endif %}
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- AGE -->
+
+                        <div class="col-md-6">
+
+                            <div
+                                class="p-3
+                                       bg-light
+                                       rounded"
+                            >
+
+                                <small class="text-muted">
+                                    Age
+                                </small>
+
+                                <div class="fw-semibold">
+
+                                    {% if pet.age is not none %}
+
+                                        {{ pet.age }}
+
+                                        {% if pet.age == 1 %}
+
+                                            year
+
+                                        {% else %}
+
+                                            years
+
+                                        {% endif %}
+
+                                    {% else %}
+
+                                        Not provided
+
+                                    {% endif %}
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- WEIGHT -->
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted">Weight</small>
+                                <div class="fw-semibold">
+                                    {% if pet.weight is not none %}
+                                        {{ pet.weight }} kg
+                                    {% else %}
+                                        Not provided
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+
+                    <hr class="my-4">
+
+
+
+                    <!-- =================================================
+                         PET CARE
+                    ================================================== -->
+
+                    <h5 class="fw-bold">
+
+                        Pet Care
+
+                    </h5>
+
+
+
+                    <!-- ================================================
+                         VACCINATION HISTORY
+                    ================================================= -->
+
+                    <h6 class="fw-semibold text-muted mt-4 mb-1">Vaccination History</h6>
+
+
+                    <div class="row g-3 mt-1">
+
+
+                        <!-- VACCINATION -->
+                        <div class="col-md-6">
+                            <div class="border rounded p-3 h-100 d-flex flex-column justify-content-between bg-white shadow-sm">
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="fs-3">💉</div>
+                                        <span class="badge {{ 'bg-danger' if pet.overdue_vaccinations else 'bg-warning text-dark' if pet.upcoming_vaccinations else 'bg-success' if pet.vaccinations else 'bg-secondary' }}">
+                                            {% if pet.overdue_vaccinations %}
+                                                {{ pet.overdue_vaccinations|length }} Overdue
+                                            {% elif pet.upcoming_vaccinations %}
+                                                {{ pet.upcoming_vaccinations|length }} Due Soon
+                                            {% elif pet.vaccinations %}
+                                                Up to Date
+                                            {% else %}
+                                                No Records
+                                            {% endif %}
+                                        </span>
+                                    </div>
+
+                                    <h6 class="fw-bold mt-2 mb-1">
+                                        Vaccinations
+                                    </h6>
+
+                                    <p class="text-muted small mb-3">
+                                        {% if pet.vaccinations %}
+                                            {{ pet.vaccinations|length }} immunization record{{ 's' if pet.vaccinations|length > 1 else '' }} logged.
+                                        {% else %}
+                                            Keep track of immunizations, rabies, and scheduled boosters.
+                                        {% endif %}
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <a href="{{ url_for('pet_vaccinations', pet_id=pet.id) }}" class="btn btn-outline-primary btn-sm w-100 fw-semibold">
+                                        Manage Vaccinations →
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+                        <!-- DEWORMING HISTORY -->
+                        <div class="col-12 mt-1"><h6 class="fw-semibold text-muted mb-1">Deworming History</h6></div>
+                        <div class="col-md-6">
+                            <div class="border rounded p-3 h-100 d-flex flex-column justify-content-between bg-white shadow-sm">
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="fs-3">💊</div>
+                                        <span class="badge {{ 'bg-danger' if pet.overdue_dewormings else 'bg-warning text-dark' if pet.upcoming_dewormings else 'bg-success' if pet.dewormings else 'bg-secondary' }}">
+                                            {% if pet.overdue_dewormings %}
+                                                {{ pet.overdue_dewormings|length }} Overdue
+                                            {% elif pet.upcoming_dewormings %}
+                                                {{ pet.upcoming_dewormings|length }} Due Soon
+                                            {% elif pet.dewormings %}
+                                                Up to Date
+                                            {% else %}
+                                                No Records
+                                            {% endif %}
+                                        </span>
+                                    </div>
+
+                                    <h6 class="fw-bold mt-2 mb-1">
+                                        Deworming
+                                    </h6>
+
+                                    <p class="text-muted small mb-3">
+                                        {% if pet.dewormings %}
+                                            {{ pet.dewormings|length }} treatment record{{ 's' if pet.dewormings|length > 1 else '' }} logged.
+                                        {% else %}
+                                            Track anti-parasitic treatments and repeat booster schedules.
+                                        {% endif %}
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <a href="{{ url_for('pet_deworming', pet_id=pet.id) }}" class="btn btn-outline-primary btn-sm w-100 fw-semibold">
+                                        Manage Deworming →
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- HEALTH ASSISTANT -->
+                        <div class="col-12 mt-3">
+                            <div class="border rounded p-3 bg-white shadow-sm d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="fs-2">❤️</div>
+                                    <div>
+                                        <h6 class="fw-bold mb-1">Health Assistant</h6>
+                                        <p class="text-muted small mb-0">Prepare clinical visit notes and monitor care timelines for {{ pet.name }}.</p>
+                                    </div>
+                                </div>
+                                <a href="{{ url_for('health_assistant', pet_id=pet.id) }}" class="btn btn-outline-danger btn-sm fw-semibold">
+                                    Open Health Assistant →
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- =================================================
+                         DELETE PET
+                    ================================================== -->
+
+                    <div class="mt-4">
+
+                        <form
+                            method="POST"
+                            action="{{
+                                url_for(
+                                    'delete_pet',
+                                    pet_id=pet.id
+                                )
+                            }}"
+                            onsubmit="
+                                return confirm(
+                                    'Are you sure you want to delete {{ pet.name }}? This action cannot be undone.'
+                                );
+                            "
+                        >
+
+                            <button
+                                type="submit"
+                                class="btn btn-outline-danger"
+                            >
+
+                                🗑️ Delete Pet
+
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</main>
+
+
+
+<!-- =========================================================
+     FOOTER
+========================================================= -->
+
+<footer
+    class="bg-dark
+           text-white
+           text-center
+           py-4
+           mt-5"
+>
+
+    <div class="container">
+
+        <p class="mb-1">
+
+            🐾 <strong>PawCare</strong>
+
+        </p>
+
+
+        <small class="text-white-50">
+
+            Smart Pet Care &amp; Safety Platform
+
+        </small>
+
+    </div>
+
+</footer>
+
+
+
+<!-- Bootstrap JS -->
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+></script>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PawCare | Report a Lost Pet</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- PawCare CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        body {
+            background-color: #f7f9fc;
+            min-height: 100vh;
+        }
+
+        .form-card {
+            border: none;
+            border-radius: 18px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+            background: #ffffff;
+        }
+
+        .section-header {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #1e293b;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 8px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .photo-preview-box {
+            width: 140px;
+            height: 140px;
+            border-radius: 16px;
+            border: 2px dashed #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background-color: #f8fafc;
+            margin-bottom: 12px;
+            cursor: pointer;
+        }
+
+        .photo-preview-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .required-star {
+            color: #dc3545;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- =========================================================
+     NAVBAR
+========================================================= -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="{{ url_for('dashboard') }}">
+            🐾 PawCare
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
+            aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <ul class="navbar-nav ms-auto align-items-lg-center">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('dashboard') }}">
+                        Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('notifications') }}">
+                        🔔 Notifications
+                        {% if nav_notification_count and nav_notification_count > 0 %}
+                            <span class="badge bg-danger rounded-pill ms-1">{{ nav_notification_count }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active fw-bold text-warning" href="{{ url_for('lost_found') }}">
+                        🔍 Lost &amp; Found
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-danger fw-semibold" href="{{ url_for('emergency') }}">
+                        🚨 Emergency
+                    </a>
+                </li>
+                {% include 'includes/nav_profile_dropdown.html' %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- =========================================================
+     MAIN FORM CONTAINER
+========================================================= -->
+<main class="container py-4 py-md-5" style="max-width: 820px;">
+
+    <!-- Breadcrumb / Back Link -->
+    <div class="mb-3">
+        <a href="{{ url_for('lost_found') }}" class="text-decoration-none text-muted small fw-semibold">
+            &larr; Back to Lost &amp; Found Directory
+        </a>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="mb-4">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category if category in ['success', 'danger', 'warning', 'info'] else 'info' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="form-card p-4 p-md-5">
+
+        <!-- Header -->
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <span style="font-size: 40px;">🚨</span>
+            <div>
+                <h2 class="fw-bold text-dark mb-1">Report a Lost Pet</h2>
+                <p class="text-muted small mb-0">
+                    Publish an immediate community alert to help bring your pet home safely.
+                </p>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('report_lost') }}" enctype="multipart/form-data" id="reportLostForm">
+
+            <!-- 1. Quick Select From Registered Pets (if any) -->
+            {% if user_pets %}
+                <div class="p-3 bg-light rounded-3 mb-4 border">
+                    <label for="selected_pet_id" class="form-label fw-bold text-dark small mb-1">
+                        🐾 Choose from your registered PawCare pets (Optional):
+                    </label>
+                    <select id="selected_pet_id" name="selected_pet_id" class="form-select form-select-sm">
+                        <option value="">-- Or enter pet details manually --</option>
+                        {% for pet in user_pets %}
+                            <option value="{{ pet.id }}"
+                                    data-name="{{ pet.name }}"
+                                    data-species="{{ pet.species }}"
+                                    data-breed="{{ pet.breed or '' }}"
+                                    data-gender="{{ pet.gender or '' }}"
+                                    data-photo="{{ pet.photo or '' }}">
+                                {{ pet.name }} ({{ pet.species }}{% if pet.breed %} - {{ pet.breed }}{% endif %})
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <small class="text-muted">Selecting your registered pet will automatically fill out their known information and photo.</small>
+                </div>
+            {% endif %}
+
+            <!-- 2. Pet Basic Information -->
+            <div class="section-header">
+                <span>🐾 Pet Details</span>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label for="pet_name" class="form-label fw-semibold">
+                        Pet Name <span class="required-star">*</span>
+                    </label>
+                    <input type="text" class="form-control" id="pet_name" name="pet_name" placeholder="e.g. Bella" required>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="species" class="form-label fw-semibold">
+                        Species <span class="required-star">*</span>
+                    </label>
+                    <select class="form-select" id="species" name="species" required>
+                        <option value="Dog">Dog</option>
+                        <option value="Cat">Cat</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="breed" class="form-label fw-semibold">Breed</label>
+                    <input type="text" class="form-control" id="breed" name="breed" placeholder="e.g. Golden Retriever, Persian, Mixed">
+                </div>
+
+                <div class="col-md-3">
+                    <label for="gender" class="form-label fw-semibold">Gender</label>
+                    <select class="form-select" id="gender" name="gender">
+                        <option value="Unknown">Unknown</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="color" class="form-label fw-semibold">Color / Pattern</label>
+                    <input type="text" class="form-control" id="color" name="color" placeholder="e.g. Black &amp; White, Tan">
+                </div>
+            </div>
+
+            <!-- 3. Photo Upload -->
+            <div class="section-header">
+                <span>📷 Pet Photo</span>
+            </div>
+
+            <div class="row align-items-center mb-4">
+                <div class="col-auto">
+                    <div class="photo-preview-box" id="previewBox" onclick="document.getElementById('photoInput').click()">
+                        <span id="previewPlaceholder" style="font-size: 36px;">📷</span>
+                        <img id="photoPreviewImg" src="" alt="Pet Preview" style="display: none;">
+                    </div>
+                </div>
+                <div class="col">
+                    <label for="photoInput" class="form-label fw-semibold">Upload Photo</label>
+                    <input class="form-control" type="file" id="photoInput" name="photo" accept=".png, .jpg, .jpeg, .gif, .webp">
+                    <small class="text-muted d-block mt-1">
+                        Clear, recent photos dramatically improve community recognition. Max 10MB (JPG, PNG, GIF, WEBP).
+                    </small>
+                </div>
+            </div>
+
+            <!-- 4. Location & Time Details -->
+            <div class="section-header">
+                <span>📍 Last Seen Information</span>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-8">
+                    <label for="location" class="form-label fw-semibold">
+                        Last Seen Location <span class="required-star">*</span>
+                    </label>
+                    <input type="text" class="form-control" id="location" name="location"
+                           placeholder="e.g. Near Central Park West entrance, Elm Street" required>
+                </div>
+
+                <div class="col-md-4">
+                    <label for="city" class="form-label fw-semibold">City / Area</label>
+                    <input type="text" class="form-control" id="city" name="city" placeholder="e.g. Seattle, WA">
+                </div>
+
+                <div class="col-md-6">
+                    <label for="report_date" class="form-label fw-semibold">
+                        Date Pet Went Missing <span class="required-star">*</span>
+                    </label>
+                    <input type="date" class="form-control" id="report_date" name="report_date" required>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="report_time" class="form-label fw-semibold">Approximate Time</label>
+                    <input type="text" class="form-control" id="report_time" name="report_time" placeholder="e.g. Around 4:30 PM / Morning">
+                </div>
+            </div>
+
+            <!-- 5. Distinguishing Description -->
+            <div class="section-header">
+                <span>📝 Description &amp; Identifying Marks</span>
+            </div>
+
+            <div class="mb-4">
+                <label for="description" class="form-label fw-semibold">
+                    Detailed Description <span class="required-star">*</span>
+                </label>
+                <textarea class="form-control" id="description" name="description" rows="4"
+                          placeholder="Collar color, tag details, microchip status, unique markings, behavioral traits (friendly, shy), or circumstances when pet went missing." required></textarea>
+            </div>
+
+            <!-- 6. Safe Contact Mechanism -->
+            <div class="section-header">
+                <span>🔒 Safe Contact Information</span>
+            </div>
+
+            <div class="p-3 bg-light rounded-3 mb-4 border">
+                <div class="d-flex align-items-center gap-2 mb-2 text-primary fw-semibold small">
+                    <span>🛡️ Privacy Notice:</span>
+                </div>
+                <p class="small text-muted mb-3">
+                    PawCare protects your sensitive account details. Only the specific contact name, phone, or email you authorize below will be displayed to people attempting to assist your search.
+                </p>
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="contact_name" class="form-label fw-semibold small">Contact Name</label>
+                        <input type="text" class="form-control form-control-sm" id="contact_name" name="contact_name"
+                               value="{{ current_user.name }}">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="contact_phone" class="form-label fw-semibold small">Contact Phone (Optional)</label>
+                        <input type="tel" class="form-control form-control-sm" id="contact_phone" name="contact_phone"
+                               placeholder="e.g. +1 555-0199">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="contact_email" class="form-label fw-semibold small">Contact Email</label>
+                        <input type="email" class="form-control form-control-sm" id="contact_email" name="contact_email"
+                               value="{{ current_user.email }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit buttons -->
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{{ url_for('lost_found') }}" class="btn btn-outline-secondary px-4">
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-danger px-5 fw-bold shadow-sm">
+                    🚨 Publish Lost Pet Report
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+
+</main>
+
+<footer class="bg-dark text-white text-center py-4 mt-5">
+    <div class="container">
+        <p class="mb-1">🐾 <strong>PawCare</strong></p>
+        <small class="text-white-50">Community Lost &amp; Found Network</small>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+<script>
+    // Today as default date
+    const dateInput = document.getElementById('report_date');
+    if (dateInput && !dateInput.value) {
+        dateInput.value = new Date().toISOString().split('T')[0];
+    }
+
+    // Photo preview
+    const photoInput = document.getElementById('photoInput');
+    const previewImg = document.getElementById('photoPreviewImg');
+    const previewPlaceholder = document.getElementById('previewPlaceholder');
+
+    photoInput.addEventListener('change', function(e) {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                previewImg.src = evt.target.result;
+                previewImg.style.display = 'block';
+                previewPlaceholder.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Auto-fill from registered pet dropdown
+    const petSelect = document.getElementById('selected_pet_id');
+    if (petSelect) {
+        petSelect.addEventListener('change', function() {
+            const opt = this.options[this.selectedIndex];
+            if (opt && opt.value) {
+                document.getElementById('pet_name').value = opt.getAttribute('data-name') || '';
+                const speciesVal = opt.getAttribute('data-species');
+                if (speciesVal) {
+                    const speciesSelect = document.getElementById('species');
+                    for (let i = 0; i < speciesSelect.options.length; i++) {
+                        if (speciesSelect.options[i].value.toLowerCase() === speciesVal.toLowerCase()) {
+                            speciesSelect.selectedIndex = i;
+                            break;
+                        }
+                    }
+                }
+                document.getElementById('breed').value = opt.getAttribute('data-breed') || '';
+                const genderVal = opt.getAttribute('data-gender');
+                if (genderVal) {
+                    const genderSelect = document.getElementById('gender');
+                    for (let i = 0; i < genderSelect.options.length; i++) {
+                        if (genderSelect.options[i].value.toLowerCase() === genderVal.toLowerCase()) {
+                            genderSelect.selectedIndex = i;
+                            break;
+                        }
+                    }
+                }
+                const photoName = opt.getAttribute('data-photo');
+                if (photoName) {
+                    previewImg.src = '/uploads/' + photoName;
+                    previewImg.style.display = 'block';
+                    previewPlaceholder.style.display = 'none';
+                }
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
